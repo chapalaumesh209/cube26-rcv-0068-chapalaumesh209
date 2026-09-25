@@ -28,6 +28,7 @@ import {
   UserCheck,
   Eye,
   Check,
+  Scale,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -308,14 +309,14 @@ export default function InspectionDetailPage() {
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition-colors shadow disabled:opacity-50"
             >
               <Play className="w-4 h-4" />
-              {analyzing ? "Running VLM..." : "Run Inspection"}
+              {analyzing ? "Inspecting…" : "Run inspection"}
             </button>
           ) : (
             <button
               onClick={handleRunAnalysis}
               disabled={analyzing}
               className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50"
-              title="Execute re-analysis with single batched VLM inference"
+              title="Re-run the eight receiving checks on the current photographs"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${analyzing ? "animate-spin" : ""}`} />
               Re-analyze
@@ -333,7 +334,7 @@ export default function InspectionDetailPage() {
             </button>
           ) : isEvaluator ? (
             <span className="inline-flex items-center gap-1 px-3 py-2 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-medium">
-              <Eye className="w-3.5 h-3.5" /> Evaluator (Read-Only)
+              <Eye className="w-3.5 h-3.5" /> Quality (read only)
             </span>
           ) : (
             <button
@@ -362,8 +363,8 @@ export default function InspectionDetailPage() {
         <div className="lg:col-span-3 space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-4">
             <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">1. Expected PO State</h2>
-              <p className="text-[11px] text-slate-400">Contractual purchase order line specifications</p>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Purchase order</h2>
+                <p className="text-[11px] text-slate-400">What this unit is supposed to be</p>
             </div>
 
             <div className="space-y-3 text-xs">
@@ -436,8 +437,8 @@ export default function InspectionDetailPage() {
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">2. Receiving Evidence</h2>
-                <p className="text-[11px] text-slate-400">Original dock photographs and regional grounding</p>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Dock photographs</h2>
+                <p className="text-[11px] text-slate-400">Condition captured at the bay</p>
               </div>
               <span className="text-[11px] text-slate-400 font-mono">
                 {inspection.photos?.length || 0} Images
@@ -514,11 +515,11 @@ export default function InspectionDetailPage() {
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
             <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">3. Check Results (8 Vectors)</h2>
-                <p className="text-[11px] text-slate-400">Single-call multimodal inference</p>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Eight receiving checks</h2>
+                <p className="text-[11px] text-slate-400">Observations in, rules decide</p>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200 font-mono">
-                1 VLM Call
+              <span className="text-[10px] px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">
+                One call
               </span>
             </div>
 
@@ -606,7 +607,7 @@ export default function InspectionDetailPage() {
                 {inspection.overallVerdict === "pass" && "All 8 required check vectors supported by visual and document evidence."}
                 {inspection.overallVerdict === "exception" && "Discrepancy or physical defect established. Zero masked failures enforced."}
                 {inspection.overallVerdict === "uncertain" && "First-class uncertainty: insufficient evidence to support a reliable commercial decision."}
-                {inspection.overallVerdict === "pending" && "Receipt recorded under fail-open safeguard; awaiting AI inference."}
+                {inspection.overallVerdict === "pending" && "Photograph saved. Inspection is pending so the dock is not blocked."}
               </p>
             </div>
           </div>
@@ -614,7 +615,7 @@ export default function InspectionDetailPage() {
           <div className="text-right text-xs">
             <span className="text-slate-500 block text-[10px]">CONTENT HASH (SHA-256)</span>
             <span className="font-mono text-slate-800 bg-white/80 px-2 py-0.5 rounded border border-slate-200">
-              {inspection.contentHash?.substring(0, 16)}...
+              {inspection.contentHash ? `${inspection.contentHash.substring(0, 16)}…` : "Pending seal"}
             </span>
           </div>
         </div>
@@ -622,8 +623,10 @@ export default function InspectionDetailPage() {
         {/* Telemetry bar */}
         <div className="px-4 py-2.5 bg-slate-50 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100">
           <div className="flex items-center gap-4">
-            <span>Model: <code className="bg-white px-1.5 py-0.5 rounded border text-slate-700">{inspection.modelVersion}</code></span>
-            <span>Latency: <strong className="text-slate-700">{inspection.latency_ms}ms</strong></span>
+            <span>Engine: <code className="bg-white px-1.5 py-0.5 rounded border text-slate-700">obs-engine-v1</code></span>
+            {inspection.latency_ms != null && (
+              <span>Latency: <strong className="text-slate-700">{inspection.latency_ms}ms</strong></span>
+            )}
             <span>Started: {new Date(inspection.startedAt).toLocaleTimeString()}</span>
             {inspection.completedAt && <span>Completed: {new Date(inspection.completedAt).toLocaleTimeString()}</span>}
           </div>
@@ -653,6 +656,58 @@ export default function InspectionDetailPage() {
             </div>
           </div>
         )}
+        {/* Downstream Pod Interoperability Hand-Off */}
+        <div className="p-4 bg-slate-50/70 border-t border-slate-100">
+          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-brand-600" />
+              Downstream Pod Interoperability Hand-off (rcv.v1)
+            </span>
+            <span className="text-[10px] font-mono text-slate-500 font-normal">
+              Cross-Pod Contract Protocol Active
+            </span>
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5 text-brand-600" /> Pod 02: Prep Compliance Manager
+                </span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase ${
+                  inspection.overallVerdict === 'pass' ? 'bg-emerald-100 text-emerald-800' :
+                  inspection.overallVerdict === 'uncertain' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                }`}>
+                  {inspection.overallVerdict === 'pass' ? 'Eligible for Prep' : inspection.overallVerdict === 'uncertain' ? 'Pending Review' : 'Quarantine'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600">
+                {inspection.overallVerdict === 'pass'
+                  ? `Clean bill established. Ready to receive ${inspection.poLine?.qtyOrdered || 'all'} units for polybagging/labeling.`
+                  : inspection.overallVerdict === 'uncertain'
+                  ? 'Awaiting Lead Reviewer manual adjudication before releasing stock to the prep staging area.'
+                  : 'Transit defect or shortage flagged. Prevented from entering standard prep workflow.'}
+              </p>
+            </div>
+
+            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <Scale className="w-3.5 h-3.5 text-indigo-600" /> Pod 05: Inbound Recovery Manager
+                </span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase ${
+                  inspection.overallVerdict === 'exception' || inspection.overallVerdict === 'fail' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {inspection.overallVerdict === 'exception' || inspection.overallVerdict === 'fail' ? 'Claim Dossier Ready' : 'No Claim'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600">
+                {inspection.overallVerdict === 'exception' || inspection.overallVerdict === 'fail'
+                  ? `Tamper-evident record (${inspection.contentHash ? inspection.contentHash.slice(0, 10) + '…' : 'rcv.v1'}) generated for supplier chargeback claim against ${inspection.supplier?.replace(' (DUMMY)', '')}.`
+                  : 'No supplier claim necessary. Pallet condition matches PO specification.'}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* "Why?" Evidence Drilldown Dialog (Section 20 Requirement) */}
@@ -672,7 +727,7 @@ export default function InspectionDetailPage() {
                         Evidence Breakdown: {whyCheck.name}
                       </Dialog.Title>
                       <Dialog.Description className="text-xs text-slate-500">
-                        Section 20 Explainability: Expected vs Observed Fact
+                        Ordered versus observed at the dock
                       </Dialog.Description>
                     </div>
                   </div>
@@ -706,7 +761,7 @@ export default function InspectionDetailPage() {
                       {getVerdictBadge(whyCheck.verdict)}
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">VLM Confidence Score:</span>
+                      <span className="text-slate-500">Observation confidence:</span>
                       <span className="font-mono font-bold text-slate-800">{whyCheck.confidence}%</span>
                     </div>
                     <div className="flex justify-between">
@@ -714,8 +769,8 @@ export default function InspectionDetailPage() {
                       <span className="font-mono text-slate-700">{inspection.latency_ms}ms</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Model Version:</span>
-                      <span className="font-mono text-slate-700">{inspection.modelVersion}</span>
+                      <span className="text-slate-500">Engine:</span>
+                      <span className="font-mono text-slate-700">obs-engine-v1</span>
                     </div>
                   </div>
 
@@ -826,10 +881,10 @@ export default function InspectionDetailPage() {
             <div className="flex items-center justify-between border-b pb-3 mb-4">
               <div>
                 <Dialog.Title className="text-base font-bold text-slate-900">
-                  Pre-Flight Evidence Ingestion
+                  Add dock photograph
                 </Dialog.Title>
                 <Dialog.Description className="text-xs text-slate-500">
-                  Section 5.3: MIME validation, size check, SHA-256 hash & quality gate
+                  JPEG or PNG, hashed on ingest, attached to this unit.
                 </Dialog.Description>
               </div>
               <Dialog.Close className="p-1 rounded-lg text-slate-400 hover:text-slate-600">

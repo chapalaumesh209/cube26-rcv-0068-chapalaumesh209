@@ -115,7 +115,7 @@ export default function ReviewQueuePage() {
       {/* Header */}
       <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold text-slate-900">Exceptions Review</h1>
+          <h1 className="text-lg font-bold text-slate-900">Exceptions to resolve</h1>
           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
             {items.length} Pending
           </span>

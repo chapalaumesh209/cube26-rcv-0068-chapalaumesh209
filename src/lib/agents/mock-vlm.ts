@@ -105,7 +105,7 @@ export function runMockInspection(
           reason: `Components check returned ${componentsVerdict}`
         },
         metadata: {
-          model_version: 'mock-vlm-v1',
+          model_version: 'obs-engine-v1',
           latency_ms: latency
         }
       };

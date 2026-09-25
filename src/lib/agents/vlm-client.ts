@@ -110,7 +110,7 @@ async function callGemini(
   return {
     responseText,
     latency,
-    modelVersion: activeModel,
+    modelVersion: 'obs-engine-v1',
   };
 }
 
@@ -191,7 +191,7 @@ async function callOpenRouter(
   return {
     responseText,
     latency,
-    modelVersion: `openrouter/${resolvedModel}`,
+    modelVersion: 'obs-engine-v1',
   };
 }
 

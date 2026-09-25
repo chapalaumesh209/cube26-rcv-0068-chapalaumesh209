@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Package, AlertTriangle, CheckCircle, Clock, Search,
-  Filter, ArrowUpDown, RefreshCw, Download, Eye,
-  TrendingUp, TrendingDown, BarChart3, XCircle,
+  ArrowUpDown, RefreshCw, Eye, XCircle, Fingerprint, Box, Layers, Palette, ShieldAlert, Puzzle,
 } from "lucide-react";
 
 interface KPI { label: string; value: number; icon: React.ElementType; color: string; }
@@ -93,8 +92,10 @@ export default function ReceivingPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Receiving Inbox</h1>
-          <p className="text-sm text-slate-500 mt-1">Monitor and manage inbound receiving inspections</p>
+          <h1 className="text-2xl font-bold text-slate-900">Dock receiving</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            What arrived versus what was ordered — identity, count, damage, and spec, recorded at the bay.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -105,6 +106,24 @@ export default function ReceivingPage() {
             Refresh
           </button>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        {[
+          { icon: Fingerprint, label: "Identity" },
+          { icon: Package, label: "Quantity" },
+          { icon: Box, label: "Cartons" },
+          { icon: Layers, label: "Pack" },
+          { icon: Palette, label: "Variant" },
+          { icon: AlertTriangle, label: "Carton" },
+          { icon: ShieldAlert, label: "Unit" },
+          { icon: Puzzle, label: "Parts" },
+        ].map((check) => (
+          <div key={check.label} className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2">
+            <check.icon className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+            <span className="text-[11px] font-medium text-slate-600">{check.label}</span>
+          </div>
+        ))}
       </div>
 
       {/* KPI Strip */}
@@ -252,10 +271,6 @@ export default function ReceivingPage() {
         {!loading && sorted.length > 0 && (
           <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between">
             <p className="text-xs text-slate-500">Showing {sorted.length} inspections</p>
-            <button className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
-              <Download className="w-3.5 h-3.5" />
-              Export
-            </button>
           </div>
         )}
       </div>

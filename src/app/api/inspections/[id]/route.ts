@@ -14,6 +14,7 @@ import {
   overrides 
 } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { OBSERVATION_ENGINE_ID, redactModelFields } from '@/lib/public-labels';
 
 async function getSessionFromRequest() {
   const cookieStore = await cookies();
@@ -129,9 +130,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
         operatorId: inspection.operatorId,
         startedAt: inspection.startedAt ? new Date(inspection.startedAt).toISOString() : new Date().toISOString(),
         completedAt: inspection.completedAt ? new Date(inspection.completedAt).toISOString() : null,
-        modelVersion: inspection.modelVersion || 'dockproof-vlm-v1',
-        latency_ms: checks[0]?.latencyMs || 1250,
-        contentHash: evidence?.contentHash || 'sha256:7c4a8d09f6e2b1c4e7a8b9c0d1e2f3a4b5c6d7e8',
+        modelVersion: OBSERVATION_ENGINE_ID,
+        latency_ms: checks[0]?.latencyMs || null,
+        contentHash: evidence?.contentHash || null,
         failOpen: Boolean(inspection.failOpen),
         poLine: {
           qtyOrdered: poLine?.qtyOrdered || 24,
@@ -146,11 +147,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
         },
         photos: photos.map((p) => ({
           id: p.id,
-          url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=1000',
-          role: p.role || 'Inspection Image',
-          sha256: p.sha256 || 'sha256:a1b2c3d4e5f6',
+          url: p.objectKey
+            ? (p.objectKey.startsWith('/') ? p.objectKey : `/fixtures/${p.objectKey}`)
+            : '',
+          role: p.role || 'Carton',
+          sha256: p.sha256 || '',
         })),
-        evidence: evidence?.payloadJson ? JSON.parse(evidence.payloadJson) : {},
+        evidence: evidence?.payloadJson ? redactModelFields(JSON.parse(evidence.payloadJson)) : {},
         overrides: overridesList.map((o) => ({
           id: o.id,
           previousVerdict: o.originalVerdict,

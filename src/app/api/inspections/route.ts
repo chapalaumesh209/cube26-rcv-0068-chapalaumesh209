@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySession } from '@/lib/auth';
 import { db } from '@/db';
-import { inspections, units, poLines, products, purchaseOrders } from '@/db/schema';
+import { inspections, units, poLines, products, purchaseOrders, evidenceRecords } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -42,9 +42,12 @@ export async function GET(request: Request) {
         unitCode: units.unitCode,
         sku: units.sku,
         poLineId: units.poLineId,
+        contentHash: evidenceRecords.contentHash,
+        schemaVersion: evidenceRecords.schemaVersion,
       })
       .from(inspections)
       .leftJoin(units, eq(inspections.unitId, units.id))
+      .leftJoin(evidenceRecords, eq(evidenceRecords.inspectionId, inspections.id))
       .where(and(...conditions))
       .orderBy(desc(inspections.createdAt));
 
@@ -73,6 +76,8 @@ export async function GET(request: Request) {
         completedAt: r.completedAt ? new Date(r.completedAt).toISOString() : null,
         startedAt: r.startedAt ? new Date(r.startedAt).toISOString() : null,
         createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+        contentHash: r.contentHash || null,
+        schemaVersion: r.schemaVersion || 'rcv.v1',
       };
     });
 

@@ -2,58 +2,43 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import {
+  Shield,
+  Eye,
+  EyeOff,
+  Loader2,
+  Package,
+  ClipboardCheck,
+  Scale,
+  AlertTriangle,
+  BookOpen,
+} from "lucide-react";
+import { ReceivingSopModal } from "@/components/receiving-sop-modal";
 
-const ROLE_ACCOUNTS = [
+const WORKSPACES = [
   {
     email: "operator@alpha.com",
-    role: "Operator",
-    title: "Dock Operator",
-    org: "Alpha Corp",
-    desc: "Intake, Barcode Scan & VLM Camera",
-    color: "from-blue-600 to-indigo-600",
-    badge: "Intake",
+    title: "Dock operator",
+    desc: "Photograph inbound freight and record condition on arrival.",
     target: "/receiving",
   },
   {
     email: "lead@alpha.com",
-    role: "Reviewer",
-    title: "Lead Reviewer",
-    org: "Alpha Corp",
-    desc: "Exceptions Triage & Commercial Sign-off",
-    color: "from-amber-600 to-orange-600",
-    badge: "Triage",
+    title: "Lead reviewer",
+    desc: "Adjudicate exceptions and uncertain units before put-away.",
     target: "/review",
   },
   {
     email: "admin@alpha.com",
-    role: "Admin",
-    title: "Administrator",
-    org: "Alpha Corp",
-    desc: "Manifests, VLM Engine & Access Control",
-    color: "from-slate-800 to-slate-950",
-    badge: "Config",
+    title: "Site administrator",
+    desc: "Manifests, catalogue, access, and receiving policy.",
     target: "/shipments",
   },
   {
     email: "evaluator@alpha.com",
-    role: "Evaluator",
-    title: "Benchmark Evaluator",
-    org: "Alpha Corp",
-    desc: "50-Unit Held-Out Suite & Kappa Score",
-    color: "from-purple-600 to-indigo-700",
-    badge: "Metrics",
+    title: "Quality lead",
+    desc: "Held-out receiving accuracy against the eight checks.",
     target: "/evaluation",
-  },
-  {
-    email: "operator@bravo.com",
-    role: "Operator",
-    title: "Tenant Bravo",
-    org: "Bravo Inc",
-    desc: "Cross-Tenant Data Boundary Isolation",
-    color: "from-emerald-600 to-teal-700",
-    badge: "Isolated",
-    target: "/receiving",
   },
 ];
 
@@ -62,14 +47,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loadingEmail, setLoadingEmail] = useState<string | null>(null);
+  const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [sopOpen, setSopOpen] = useState(false);
 
   const handleLogin = async (targetEmail?: string, customTarget?: string) => {
     setError("");
     const useEmail = targetEmail || email;
     const usePassword = targetEmail ? "demo123" : password;
-    setLoadingEmail(useEmail);
+    setLoadingKey(useEmail);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -81,12 +67,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
-        setLoadingEmail(null);
+        setError(data.error || "Sign-in failed");
+        setLoadingKey(null);
         return;
       }
 
-      // Route to role-specific destination
       let destination = customTarget;
       if (!destination) {
         const role = data.user?.role;
@@ -99,124 +84,156 @@ export default function LoginPage() {
       router.push(destination);
       router.refresh();
     } catch {
-      setError("Network connection error. Try again.");
-      setLoadingEmail(null);
+      setError("Network error. Try again.");
+      setLoadingKey(null);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-6 text-slate-100">
-      {/* Background Subtle Gradient Glow */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand-500 rounded-full blur-[120px]" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600 rounded-full blur-[140px]" />
-      </div>
-
-      <div className="w-full max-w-4xl relative z-10 space-y-6">
-        {/* Brand Header */}
-        <div className="text-center space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold text-brand-400">
-            <Shield className="w-3.5 h-3.5 text-brand-500" />
-            DockProof · Track 01 RCV
+    <div className="min-h-screen bg-slate-950 text-slate-100 grid lg:grid-cols-2">
+      <section className="hidden lg:flex flex-col justify-between p-12 border-r border-slate-800 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-brand-900/40 via-slate-950 to-slate-950">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
+            <Shield className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">AI Receiving Manager</h1>
-          <p className="text-xs text-slate-400">Select a role to enter its specialized workspace</p>
+          <div>
+            <p className="font-bold tracking-tight">DockProof</p>
+            <p className="text-xs text-slate-400">Receiving Manager</p>
+          </div>
         </div>
 
-        {error && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs rounded-xl text-center max-w-md mx-auto">
-            {error}
-          </div>
-        )}
+        <div className="max-w-md space-y-6">
+          <h1 className="text-4xl font-extrabold tracking-tight leading-tight">
+            Prove what arrived before it enters the building.
+          </h1>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            A pallet is photographed at the bay. DockProof records identity, count, carton
+            structure, variant, damage, and missing components against the purchase order.
+            Prep and claims inherit that record — not a signed clean bill of lading with no proof.
+          </p>
+          <ul className="space-y-3 text-sm">
+            {[
+              { icon: Package, text: "Match SKU, colour, and pack spec to the PO line" },
+              { icon: ClipboardCheck, text: "Count cartons and units; flag shortage or overage" },
+              { icon: AlertTriangle, text: "Catch crush, water, tears, and empty accessory cavities" },
+              { icon: Scale, text: "Rules own PASS / EXCEPTION / UNCERTAIN — never a guess" },
+            ].map((item) => (
+              <li key={item.text} className="flex items-start gap-3 text-slate-300">
+                <item.icon className="w-4 h-4 mt-0.5 text-brand-400 shrink-0" />
+                {item.text}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        {/* 1-Click Role-Based Entry Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {ROLE_ACCOUNTS.map((acc) => {
-            const isLoading = loadingEmail === acc.email;
-            return (
-              <button
-                key={acc.email}
-                onClick={() => handleLogin(acc.email, acc.target)}
-                disabled={Boolean(loadingEmail)}
-                className="group relative p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-brand-500/50 hover:bg-slate-850 transition-all text-left flex flex-col justify-between shadow-lg disabled:opacity-50"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
-                      {acc.badge}
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-500">{acc.org}</span>
+        <div className="pt-4 border-t border-slate-800 space-y-3">
+          <button
+            type="button"
+            onClick={() => setSopOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/40 rounded-xl text-xs font-semibold transition-colors"
+          >
+            <BookOpen className="w-4 h-4 text-brand-400" />
+            <span>Explore Receiving Manager SOP & Specification</span>
+          </button>
+          <p className="text-[11px] text-slate-500 text-center">
+            Evidence is sealed per receipt. Overrides preserve original visual facts.
+          </p>
+        </div>
+      </section>
+
+      <section className="flex flex-col justify-center p-6 sm:p-12">
+        <div className="lg:hidden flex items-center gap-3 mb-8">
+          <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center">
+            <Shield className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="font-bold">DockProof</p>
+            <p className="text-[11px] text-slate-400">Receiving Manager</p>
+          </div>
+        </div>
+
+        <div className="max-w-md w-full mx-auto space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Sign in</h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Open the workspace that matches your job on the dock.
+            </p>
+          </div>
+
+          {error && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs rounded-xl">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {WORKSPACES.map((ws) => {
+              const loading = loadingKey === ws.email;
+              return (
+                <button
+                  key={ws.title}
+                  onClick={() => handleLogin(ws.email, ws.target)}
+                  disabled={Boolean(loadingKey)}
+                  className="w-full text-left p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-brand-500/50 transition-colors disabled:opacity-50"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{ws.title}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{ws.desc}</p>
+                    </div>
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-400 shrink-0" />
+                    ) : null}
                   </div>
-                  <h3 className="font-bold text-slate-100 text-sm group-hover:text-brand-300 transition-colors">
-                    {acc.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                    {acc.desc}
-                  </p>
-                </div>
+                </button>
+              );
+            })}
+          </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 group-hover:text-white">
-                  <span className="font-mono text-[11px] truncate max-w-[170px]">{acc.email}</span>
-                  {isLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-400" />
-                  ) : (
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Manual Credentials Accordion / Input */}
-        <div className="max-w-md mx-auto bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 space-y-3">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleLogin();
             }}
-            className="space-y-3"
+            className="space-y-3 pt-2 border-t border-slate-800"
           >
-            <div className="flex gap-2">
+            <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+              Organization credentials
+            </p>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Work email"
+              className="w-full px-3 py-2.5 text-sm bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            />
+            <div className="relative">
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="operator@alpha.com"
-                className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 font-mono"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full px-3 py-2.5 pr-10 text-sm bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
               />
-              <div className="relative w-36 shrink-0">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full px-3 py-2 pr-7 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
-                >
-                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
-
             <button
               type="submit"
-              disabled={Boolean(loadingEmail) || !email || !password}
-              className="w-full py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
+              disabled={Boolean(loadingKey) || !email || !password}
+              className="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
             >
-              {loadingEmail === email ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Sign In"}
+              {loadingKey === email ? <Loader2 className="w-4 h-4 animate-spin" /> : "Continue"}
             </button>
           </form>
-
-          <p className="text-[10px] text-center text-slate-500">
-            Pre-seeded password for all accounts: <code className="text-slate-400 font-mono">demo123</code>
-          </p>
         </div>
-      </div>
+      </section>
+      <ReceivingSopModal open={sopOpen} onOpenChange={setSopOpen} />
     </div>
   );
 }

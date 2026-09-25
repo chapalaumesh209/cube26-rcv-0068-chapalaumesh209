@@ -105,13 +105,13 @@ async function runHeadlessInspection(fixture: FixtureUnit) {
 
   // 2. Deterministic Decision Engine
   const checks = [
-    computeIdentityVerdict(observation.identity, fixture.expected.sku),
+    computeIdentityVerdict(observation.identity!, fixture.expected.sku),
     computeQuantityVerdict(
       fixture.expected.quantity,
-      observation.quantity?.observed_quantity,
-      observation.quantity?.occluded
+      observation.quantity?.observed_quantity ?? undefined,
+      Boolean(observation.quantity?.occluded)
     ),
-    computeCartonVerdict(fixture.expected.cartons, observation.cartons?.observed_cartons),
+    computeCartonVerdict(fixture.expected.cartons, observation.cartons?.observed_cartons ?? undefined),
     {
       checkKey: "units_per_carton",
       verdict: observation.units_per_carton?.verdict || "uncertain",
@@ -122,12 +122,12 @@ async function runHeadlessInspection(fixture: FixtureUnit) {
       },
     },
     computeVariantVerdict(
-      observation.variant,
+      observation.variant!,
       fixture.expected.colour,
       fixture.expected.variant
     ),
-    computeDamageVerdict(observation.damage),
-    computeComponentVerdict(observation.components, fixture.expected.components),
+    computeDamageVerdict(observation.damage!),
+    computeComponentVerdict(observation.components!, fixture.expected.components),
   ];
 
   const overallVerdict = computeOverallVerdict(checks);

@@ -15,49 +15,6 @@ type Inspection = {
   startedAt: string;
 };
 
-const mockInspections: Inspection[] = [
-  {
-    id: "ins_1234567890",
-    unitCode: "UC-889922",
-    sku: "SKU-4455-BLU",
-    productTitle: "Wireless Headphones",
-    poNumber: "PO-2023-001",
-    status: "completed",
-    overallVerdict: "pass",
-    startedAt: new Date().toISOString(),
-  },
-  {
-    id: "ins_0987654321",
-    unitCode: "UC-889923",
-    sku: "SKU-4455-RED",
-    productTitle: "Wireless Headphones",
-    poNumber: "PO-2023-001",
-    status: "completed",
-    overallVerdict: "exception",
-    startedAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: "ins_1122334455",
-    unitCode: "UC-889924",
-    sku: "SKU-9999-BLK",
-    productTitle: "Smart Watch",
-    poNumber: "PO-2023-002",
-    status: "completed",
-    overallVerdict: "uncertain",
-    startedAt: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    id: "ins_5544332211",
-    unitCode: "UC-889925",
-    sku: "SKU-9999-SLV",
-    productTitle: "Smart Watch",
-    poNumber: "PO-2023-002",
-    status: "pending",
-    overallVerdict: "pending",
-    startedAt: new Date(Date.now() - 86400000).toISOString(),
-  }
-];
-
 export default function InspectionsPage() {
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +22,6 @@ export default function InspectionsPage() {
   const [filterVerdict, setFilterVerdict] = useState<string>("all");
 
   useEffect(() => {
-    // Simulate API call
     const fetchInspections = async () => {
       try {
         const response = await fetch("/api/inspections");
@@ -73,11 +29,10 @@ export default function InspectionsPage() {
           const data = await response.json();
           setInspections(data.inspections || []);
         } else {
-          // Fallback to mock data if API doesn't exist
-          setInspections(mockInspections);
+          setInspections([]);
         }
-      } catch (error) {
-        setInspections(mockInspections);
+      } catch {
+        setInspections([]);
       } finally {
         setLoading(false);
       }
@@ -133,12 +88,10 @@ export default function InspectionsPage() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inspections</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage and review receiving inspections.</p>
-        </div>
+    <div className="flex flex-col h-full max-w-7xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-xl font-bold text-slate-900">Inspections</h1>
+        <p className="text-sm text-slate-500 mt-1">Every inbound unit: eight checks against the purchase order.</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">

@@ -13,6 +13,7 @@ import {
 } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { buildEvidenceRecord } from '@/lib/evidence/builder';
+import { redactModelFields } from '@/lib/public-labels';
 
 async function getSessionFromRequest() {
   const cookieStore = await cookies();
@@ -48,7 +49,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     if (existingEvidence?.payloadJson) {
       try {
         const payload = JSON.parse(existingEvidence.payloadJson);
-        return NextResponse.json({ evidence: payload });
+        return NextResponse.json({ evidence: redactModelFields(payload), contentHash: existingEvidence.contentHash });
       } catch {
         // Fallback to building fresh
       }
@@ -70,7 +71,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       org || { id: session.orgId }
     );
 
-    return NextResponse.json({ evidence: evidencePayload });
+    return NextResponse.json({ evidence: redactModelFields(evidencePayload) });
   } catch (error) {
     console.error('Error generating evidence:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

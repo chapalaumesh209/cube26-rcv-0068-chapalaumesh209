@@ -6,16 +6,13 @@ import {
   Building,
   Key,
   Shield,
-  Eye,
-  EyeOff,
   Lock,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
-  UserCheck,
   RefreshCw,
   Sliders,
 } from "lucide-react";
+import { orgDisplayName } from "@/lib/public-labels";
 
 interface AuditEvent {
   id: string;
@@ -30,14 +27,9 @@ interface AuditEvent {
 export default function SettingsPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"roles" | "users" | "org" | "api" | "audit">("roles");
-  const [showKey, setShowKey] = useState(false);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
-  const [vlmMode, setVlmMode] = useState("mock");
-  const [provider, setProvider] = useState("gemini");
-  const [geminiKey, setGeminiKey] = useState("");
-  const [geminiModel, setGeminiModel] = useState("gemini-2.0-flash");
-  const [openrouterKey, setOpenrouterKey] = useState("");
-  const [openrouterModel, setOpenrouterModel] = useState("qwen/qwen-2.5-vl-72b-instruct");
+  const [mode, setMode] = useState<"offline" | "live">("offline");
+  const [liveReady, setLiveReady] = useState(false);
   const [saveNotice, setSaveNotice] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -64,10 +56,8 @@ export default function SettingsPage() {
 
       if (vlmRes.ok) {
         const vlmData = await vlmRes.json();
-        setVlmMode(vlmData.vlmMode || "mock");
-        setProvider(vlmData.provider || "gemini");
-        setGeminiModel(vlmData.geminiModel || "gemini-2.0-flash");
-        setOpenrouterModel(vlmData.openrouterModel || "qwen/qwen-2.5-vl-72b-instruct");
+        setMode(vlmData.mode === "live" ? "live" : "offline");
+        setLiveReady(Boolean(vlmData.liveReady));
       }
     } catch (err) {
       console.error("Error loading settings:", err);
@@ -82,52 +72,42 @@ export default function SettingsPage() {
   const isAdmin = userRole === "admin";
 
   const tabs = [
-    { id: "roles", label: "Role Permissions Matrix", icon: Shield, adminOnly: false },
-    { id: "users", label: "Users & RBAC", icon: Users, adminOnly: true },
-    { id: "org", label: "Organization & Tenant", icon: Building, adminOnly: false },
-    { id: "api", label: "VLM Configuration", icon: Key, adminOnly: true },
-    { id: "audit", label: "System Audit Log", icon: Sliders, adminOnly: false },
+    { id: "roles", label: "Permissions", icon: Shield, adminOnly: false },
+    { id: "users", label: "Users", icon: Users, adminOnly: true },
+    { id: "org", label: "Organization", icon: Building, adminOnly: false },
+    { id: "api", label: "Observation engine", icon: Key, adminOnly: true },
+    { id: "audit", label: "Audit log", icon: Sliders, adminOnly: false },
   ];
 
   const CAPABILITY_MATRIX = [
-    { capability: "View Inbound Shipments & Receiving Records", operator: true, reviewer: true, admin: true, evaluator: true, note: "Evaluator in read-only mode" },
-    { capability: "Create New Receiving Intake / Import POs", operator: true, reviewer: true, admin: true, evaluator: false, note: "Restricted for Evaluator" },
-    { capability: "Upload Dock Evidence & Photographs", operator: true, reviewer: true, admin: true, evaluator: false, note: "Pre-flight quality gate enforced" },
-    { capability: "Execute Single-Call Multimodal VLM Inspection", operator: true, reviewer: true, admin: true, evaluator: false, note: "1 call per unit" },
-    { capability: "Accept Clean PASS Inbound Receipts", operator: true, reviewer: true, admin: true, evaluator: false, note: "Standard dock put-away" },
-    { capability: "Adjudicate Exceptions & Record Binding Overrides", operator: false, reviewer: true, admin: true, evaluator: false, note: "Mandatory justification audit trail" },
-    { capability: "Inspect & Export Sealed rcv.v1 Evidence Contract", operator: true, reviewer: true, admin: true, evaluator: true, note: "SHA-256 tamper-evident contract" },
-    { capability: "Execute 50-Unit Held-Out Evaluation Suite", operator: false, reviewer: true, admin: true, evaluator: true, note: "Cohen's Kappa & FP/FN analysis" },
-    { capability: "Manage Users, Tenant Policies & API Credentials", operator: false, reviewer: false, admin: true, evaluator: false, note: "Admin credentials required" },
+    { capability: "View inbound shipments", operator: true, reviewer: true, admin: true, evaluator: true },
+    { capability: "Import purchase order manifests", operator: true, reviewer: true, admin: true, evaluator: false },
+    { capability: "Capture dock photographs", operator: true, reviewer: true, admin: true, evaluator: false },
+    { capability: "Run receiving inspection", operator: true, reviewer: true, admin: true, evaluator: false },
+    { capability: "Accept PASS receipts", operator: true, reviewer: true, admin: true, evaluator: false },
+    { capability: "Override EXCEPTION / UNCERTAIN", operator: false, reviewer: true, admin: true, evaluator: false },
+    { capability: "Open sealed evidence record", operator: true, reviewer: true, admin: true, evaluator: true },
+    { capability: "Run held-out quality suite", operator: false, reviewer: true, admin: true, evaluator: true },
+    { capability: "Manage users and site policy", operator: false, reviewer: false, admin: true, evaluator: false },
   ];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900">System Settings & Governance</h1>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-              isAdmin ? "bg-indigo-100 text-indigo-800 border border-indigo-200" : "bg-slate-100 text-slate-700 border border-slate-200"
-            }`}>
-              Credentials: {userRole.toUpperCase()}
-            </span>
-          </div>
+          <h1 className="text-xl font-bold text-slate-900">Settings</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Section 14 & 15: Role-based access control (RBAC), multi-tenant isolation, and governance policies.
+            Who can receive, who can override, and how this site records inbound condition.
           </p>
         </div>
-
         {saveNotice && (
-          <div className="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-lg animate-fade-in font-medium">
+          <div className="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-lg font-medium">
             {saveNotice}
           </div>
         )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Navigation Sidebar */}
         <div className="w-full md:w-64 space-y-1 shrink-0">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -137,7 +117,7 @@ export default function SettingsPage() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-medium rounded-xl transition-all ${
                   isActive
                     ? "bg-brand-600 text-white shadow-sm font-semibold"
@@ -156,101 +136,74 @@ export default function SettingsPage() {
           })}
         </div>
 
-        {/* Content Area */}
         <div className="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm p-6 min-h-[460px]">
-          {/* Tab 1: Role Permissions Matrix */}
           {activeTab === "roles" && (
             <div className="space-y-4">
               <div className="border-b pb-3">
-                <h2 className="text-base font-bold text-slate-900">Role-Based Access Control (RBAC) Specification</h2>
-                <p className="text-xs text-slate-500">
-                  Section 14 of Architecture Spec: Explicit capabilities enforced across Operator, Reviewer, Admin, and Evaluator credentials.
-                </p>
+                <h2 className="text-base font-bold text-slate-900">Role permissions</h2>
+                <p className="text-xs text-slate-500">Operators move freight. Reviewers own commercial overrides.</p>
               </div>
-
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead>
                     <tr className="bg-slate-50 text-slate-600 font-semibold border-b">
-                      <th className="py-2.5 px-3">System Capability</th>
+                      <th className="py-2.5 px-3">Capability</th>
                       <th className="py-2.5 px-2 text-center">Operator</th>
                       <th className="py-2.5 px-2 text-center">Reviewer</th>
                       <th className="py-2.5 px-2 text-center">Admin</th>
-                      <th className="py-2.5 px-2 text-center">Evaluator</th>
-                      <th className="py-2.5 px-3">Operational Purpose</th>
+                      <th className="py-2.5 px-2 text-center">Quality</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {CAPABILITY_MATRIX.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50">
+                    {CAPABILITY_MATRIX.map((row) => (
+                      <tr key={row.capability} className="hover:bg-slate-50/50">
                         <td className="py-2.5 px-3 font-medium text-slate-800">{row.capability}</td>
-                        <td className="py-2.5 px-2 text-center">
-                          {row.operator ? <CheckCircle2 className="w-4 h-4 text-emerald-600 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-300 mx-auto" />}
-                        </td>
-                        <td className="py-2.5 px-2 text-center">
-                          {row.reviewer ? <CheckCircle2 className="w-4 h-4 text-emerald-600 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-300 mx-auto" />}
-                        </td>
-                        <td className="py-2.5 px-2 text-center">
-                          {row.admin ? <CheckCircle2 className="w-4 h-4 text-emerald-600 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-300 mx-auto" />}
-                        </td>
-                        <td className="py-2.5 px-2 text-center">
-                          {row.evaluator ? <CheckCircle2 className="w-4 h-4 text-emerald-600 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-300 mx-auto" />}
-                        </td>
-                        <td className="py-2.5 px-3 text-slate-400 text-[11px]">{row.note}</td>
+                        {[row.operator, row.reviewer, row.admin, row.evaluator].map((ok, i) => (
+                          <td key={i} className="py-2.5 px-2 text-center">
+                            {ok ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 mx-auto" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-slate-300 mx-auto" />
+                            )}
+                          </td>
+                        ))}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-
-              <div className="p-3.5 bg-brand-50/50 rounded-xl border border-brand-100 text-xs">
-                <span className="font-semibold text-brand-900 block mb-1">Quick Role Switcher Tip:</span>
-                <p className="text-slate-600">
-                  You can use the <strong>Role Switcher</strong> dropdown at the top-right of the dashboard header at any time to immediately switch credentials and verify how the UI and permissions adapt live.
-                </p>
-              </div>
             </div>
           )}
 
-          {/* Tab 2: Users & RBAC (Admin only) */}
           {activeTab === "users" && (
             <div className="space-y-4">
               {!isAdmin ? (
                 <div className="text-center py-12 text-slate-500 space-y-2">
                   <Lock className="w-10 h-10 text-rose-400 mx-auto mb-2" />
-                  <h3 className="font-bold text-slate-800">Administrative Credentials Required</h3>
+                  <h3 className="font-bold text-slate-800">Administrator access required</h3>
                   <p className="text-xs max-w-md mx-auto text-slate-500">
-                    User account management is strictly restricted to Organization Administrators. Switch to <code>admin@alpha.com</code> using the top header to manage users.
+                    User management is limited to site administrators.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="border-b pb-3 flex justify-between items-center">
-                    <div>
-                      <h2 className="text-base font-bold text-slate-900">Tenant User Accounts</h2>
-                      <p className="text-xs text-slate-500">Manage operator, reviewer, and administrator credentials for {currentUser?.orgId}.</p>
-                    </div>
-                    <span className="text-xs px-2.5 py-1 bg-brand-50 text-brand-700 font-semibold rounded-lg border border-brand-200">
-                      5 Pre-Seeded Accounts
-                    </span>
+                  <div className="border-b pb-3">
+                    <h2 className="text-base font-bold text-slate-900">People at this site</h2>
+                    <p className="text-xs text-slate-500">Accounts bound to {orgDisplayName(currentUser?.orgId)}.</p>
                   </div>
-
                   <div className="space-y-2">
                     {[
-                      { email: "operator@alpha.com", role: "operator", name: "Operator Alpha", desc: "Dock intake & capture" },
-                      { email: "lead@alpha.com", role: "reviewer", name: "Lead Reviewer", desc: "Triage & overrides" },
-                      { email: "admin@alpha.com", role: "admin", name: "Admin Alpha", desc: "Full governance" },
-                      { email: "evaluator@alpha.com", role: "evaluator", name: "Evaluator", desc: "Benchmark runner" },
+                      { email: "operator@alpha.com", role: "operator", name: "Dock operator", desc: "Intake and capture" },
+                      { email: "lead@alpha.com", role: "reviewer", name: "Lead reviewer", desc: "Triage and overrides" },
+                      { email: "admin@alpha.com", role: "admin", name: "Site administrator", desc: "Policy and access" },
+                      { email: "evaluator@alpha.com", role: "evaluator", name: "Quality lead", desc: "Held-out suite" },
                     ].map((u) => (
                       <div key={u.email} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-900">{u.name}</span>
-                            <span className="font-mono text-slate-500">({u.email})</span>
-                          </div>
+                          <span className="font-semibold text-slate-900">{u.name}</span>
                           <p className="text-[11px] text-slate-400 mt-0.5">{u.desc}</p>
                         </div>
-                        <span className="px-2 py-0.5 rounded font-mono font-bold uppercase text-[10px] bg-white border border-slate-200 text-slate-700">
+                        <span className="px-2 py-0.5 rounded font-medium uppercase text-[10px] bg-white border border-slate-200 text-slate-700">
                           {u.role}
                         </span>
                       </div>
@@ -261,164 +214,63 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Tab 3: Organization & Tenant Isolation */}
           {activeTab === "org" && (
             <div className="space-y-4">
               <div className="border-b pb-3">
-                <h2 className="text-base font-bold text-slate-900">Organization & Multi-Tenancy Boundary</h2>
-                <p className="text-xs text-slate-500">
-                  Section 15: Complete logical separation between demo organizations.
-                </p>
+                <h2 className="text-base font-bold text-slate-900">Organization</h2>
+                <p className="text-xs text-slate-500">Receipts, photos, and POs never leave this site.</p>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Current Organization</span>
-                  <p className="text-base font-bold text-slate-900">{currentUser?.orgId === "org_demo_alpha" ? "Alpha Corp" : "Bravo Inc"}</p>
-                  <p className="text-slate-500 font-mono text-[11px]">Tenant ID: {currentUser?.orgId}</p>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Current site</span>
+                  <p className="text-base font-bold text-slate-900">{orgDisplayName(currentUser?.orgId)}</p>
                 </div>
-
                 <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-200 space-y-2">
-                  <span className="text-[10px] font-bold uppercase text-emerald-800">Security Guarantee</span>
-                  <p className="font-semibold text-emerald-900">Row-Level Security Active</p>
+                  <span className="text-[10px] font-bold uppercase text-emerald-800">Isolation</span>
+                  <p className="font-semibold text-emerald-900">Row-level tenancy is on</p>
                   <p className="text-emerald-700 text-[11px]">
-                    All database queries and image keys are partitioned by organization ID. Contamination between Alpha and Bravo is strictly prevented.
+                    Queries and image keys are scoped to this organization.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Tab 4: VLM Configuration */}
           {activeTab === "api" && (
             <div className="space-y-4">
               {!isAdmin ? (
                 <div className="text-center py-12 text-slate-500 space-y-2">
                   <Lock className="w-10 h-10 text-rose-400 mx-auto mb-2" />
-                  <h3 className="font-bold text-slate-800">Administrator Credentials Required</h3>
+                  <h3 className="font-bold text-slate-800">Administrator access required</h3>
                   <p className="text-xs max-w-md mx-auto text-slate-500">
-                    Modifying vision model endpoints and API keys requires Admin authorization.
+                    Observation engine policy is restricted to administrators.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4 max-w-lg text-xs">
                   <div className="border-b pb-3">
-                    <h2 className="text-base font-bold text-slate-900">VLM & AI Vision Pipeline</h2>
-                    <p className="text-slate-500">Configure single-call multimodal inference: Google Gemini Flash or OpenRouter open-source vision models.</p>
+                    <h2 className="text-base font-bold text-slate-900">Observation engine</h2>
+                    <p className="text-slate-500">
+                      Vision extracts facts. Commercial PASS / EXCEPTION / UNCERTAIN is owned by receiving rules.
+                      Provider credentials stay on the server.
+                    </p>
                   </div>
-
-                  {/* Mode Selector */}
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Inference Engine</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Mode</label>
                     <select
-                      value={vlmMode}
-                      onChange={(e) => setVlmMode(e.target.value)}
+                      value={mode}
+                      onChange={(e) => setMode(e.target.value as "offline" | "live")}
                       className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     >
-                      <option value="mock">Offline / Local Deterministic Mock Engine</option>
-                      <option value="live">Live Multimodal API (Google Gemini or OpenRouter)</option>
+                      <option value="offline">Offline — on-site observation fixture</option>
+                      <option value="live">Live — configured server credentials</option>
                     </select>
                   </div>
-
-                  {vlmMode === "live" && (
-                    <>
-                      {/* Provider Selector */}
-                      <div>
-                        <label className="block font-semibold text-slate-700 mb-1">Vision Provider</label>
-                        <select
-                          value={provider}
-                          onChange={(e) => setProvider(e.target.value)}
-                          className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                        >
-                          <option value="gemini">Google Gemini API (Official SDK)</option>
-                          <option value="openrouter">OpenRouter (Open-Source & Commercial Vision Models)</option>
-                        </select>
-                      </div>
-
-                      {/* Google Gemini Section */}
-                      {provider === "gemini" && (
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                          <span className="font-semibold text-slate-800 block text-xs">Google Gemini Configuration</span>
-                          <div>
-                            <label className="block text-[11px] text-slate-600 mb-1">Gemini Model</label>
-                            <select
-                              value={geminiModel}
-                              onChange={(e) => setGeminiModel(e.target.value)}
-                              className="w-full border border-slate-300 rounded-lg p-2 bg-white"
-                            >
-                              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Recommended — Ultra-Fast Multimodal)</option>
-                              <option value="gemini-3-flash">Gemini 3 Flash (Preview / Next-Gen Vision)</option>
-                              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Production Standard)</option>
-                              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Multimodal Reasoning)</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] text-slate-600 mb-1">Google GenAI API Key (GEMINI_API_KEY)</label>
-                            <div className="relative">
-                              <input
-                                type={showKey ? "text" : "password"}
-                                value={geminiKey}
-                                onChange={(e) => setGeminiKey(e.target.value)}
-                                placeholder="Paste your AIzaSy... API key here"
-                                className="w-full border border-slate-300 rounded-lg p-2 pr-10 bg-white font-mono"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowKey(!showKey)}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                              >
-                                {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                            </div>
-                            <p className="text-[10px] text-slate-400 mt-1">Get an API key from Google AI Studio (aistudio.google.com).</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* OpenRouter Section */}
-                      {provider === "openrouter" && (
-                        <div className="p-3 bg-purple-50/50 rounded-xl border border-purple-200 space-y-3">
-                          <span className="font-semibold text-purple-950 block text-xs">OpenRouter Vision Models Configuration</span>
-                          <div>
-                            <label className="block text-[11px] text-slate-600 mb-1">Model Architecture</label>
-                            <select
-                              value={openrouterModel}
-                              onChange={(e) => setOpenrouterModel(e.target.value)}
-                              className="w-full border border-slate-300 rounded-lg p-2 bg-white"
-                            >
-                              <option value="google/gemini-3.8-flash">Google Gemini 3.8 Flash (Top Reasoning, Spatial & Defect Accuracy)</option>
-                              <option value="qwen/qwen-2.5-vl-72b-instruct">Qwen 2.5 VL 72B (Open Source — Top Barcode/OCR & 1.7s Latency)</option>
-                              <option value="google/gemini-3.1-flash-image">Google Gemini 3.1 Flash Image (Ultra-Fast 2.8s Image Analysis)</option>
-                              <option value="openrouter/auto">OpenRouter Auto-Routing (Dynamic High-Availability)</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] text-slate-600 mb-1">OpenRouter API Key (OPENROUTER_API_KEY)</label>
-                            <div className="relative">
-                              <input
-                                type={showKey ? "text" : "password"}
-                                value={openrouterKey}
-                                onChange={(e) => setOpenrouterKey(e.target.value)}
-                                placeholder="Paste your sk-or-v1-... key here"
-                                className="w-full border border-slate-300 rounded-lg p-2 pr-10 bg-white font-mono"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowKey(!showKey)}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                              >
-                                {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                            </div>
-                            <p className="text-[10px] text-slate-400 mt-1">Get an API key from openrouter.ai/keys.</p>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-
+                  <p className="text-[11px] text-slate-500">
+                    {liveReady
+                      ? "Server credentials are present. Live mode will run a single observation call per unit."
+                      : "No live credentials on this host. Live mode will fail open to pending inspection."}
+                  </p>
                   <button
                     type="button"
                     disabled={savingSettings}
@@ -428,17 +280,10 @@ export default function SettingsPage() {
                         const res = await fetch("/api/settings/vlm", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            vlmMode,
-                            provider,
-                            geminiKey,
-                            geminiModel,
-                            openrouterKey,
-                            openrouterModel,
-                          }),
+                          body: JSON.stringify({ mode }),
                         });
                         if (res.ok) {
-                          setSaveNotice("VLM model configuration saved and applied immediately!");
+                          setSaveNotice("Observation policy saved.");
                           setTimeout(() => setSaveNotice(""), 4000);
                         }
                       } finally {
@@ -447,41 +292,38 @@ export default function SettingsPage() {
                     }}
                     className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
                   >
-                    {savingSettings ? "Saving..." : "Save & Apply VLM Configuration"}
+                    {savingSettings ? "Saving..." : "Save policy"}
                   </button>
                 </div>
               )}
             </div>
           )}
 
-          {/* Tab 5: System Audit Log */}
           {activeTab === "audit" && (
             <div className="space-y-4">
               <div className="border-b pb-3 flex justify-between items-center">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">Immutable System Audit Log</h2>
-                  <p className="text-xs text-slate-500">Section 21: Tamper-evident trace of overrides and inspection events.</p>
+                  <h2 className="text-base font-bold text-slate-900">Audit log</h2>
+                  <p className="text-xs text-slate-500">Overrides and inspection events for this site.</p>
                 </div>
                 <button onClick={fetchSession} className="p-1.5 rounded-lg border text-slate-500 hover:bg-slate-50">
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
               </div>
-
               {auditEvents.length === 0 ? (
                 <div className="text-center py-12 text-slate-400">
                   <Sliders className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                  <p className="text-xs">No audit events recorded yet for this tenant.</p>
+                  <p className="text-xs">No audit events yet.</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
                   {auditEvents.map((evt) => (
                     <div key={evt.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">{evt.eventType}</span>
-                          <span className="font-mono text-slate-500">[{evt.objectType}:{evt.objectId}]</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 font-mono mt-0.5">Payload Hash: {evt.payloadHash}</p>
+                        <span className="font-semibold text-slate-900">{evt.eventType}</span>
+                        <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                          {evt.payloadHash ? `${evt.payloadHash.slice(0, 16)}…` : "—"}
+                        </p>
                       </div>
                       <div className="text-right">
                         <span className="font-medium text-slate-700 block">{evt.actorId}</span>
