@@ -17,57 +17,57 @@ export const EvidenceItem = z.object({
 export const IdentityObservation = z.object({
   verdict: VerdictEnum,
   confidence: z.number().min(0).max(1),
-  observed_sku: z.string().optional(),
-  observed_asin: z.string().optional(),
-  observed_title: z.string().optional(),
+  observed_sku: z.string().nullish(),
+  observed_asin: z.string().nullish(),
+  observed_title: z.string().nullish(),
   label_readable: z.boolean(),
-  visual_similarity: z.number().min(0).max(1).optional(),
+  visual_similarity: z.number().min(0).max(1).nullish(),
   reason: z.string(),
-  evidence: z.array(EvidenceItem).optional(),
+  evidence: z.array(EvidenceItem).nullish(),
 });
 
 export const QuantityObservation = z.object({
   verdict: VerdictEnum,
   confidence: z.number().min(0).max(1),
-  observed_quantity: z.number().optional(),
+  observed_quantity: z.number().nullish(),
   occluded: z.boolean(),
   reason: z.string(),
-  evidence: z.array(EvidenceItem).optional(),
+  evidence: z.array(EvidenceItem).nullish(),
 });
 
 export const CartonObservation = z.object({
   verdict: VerdictEnum,
   confidence: z.number().min(0).max(1),
-  observed_cartons: z.number().optional(),
+  observed_cartons: z.number().nullish(),
   reason: z.string(),
-  evidence: z.array(EvidenceItem).optional(),
+  evidence: z.array(EvidenceItem).nullish(),
 });
 
 export const UnitsPerCartonObservation = z.object({
   verdict: VerdictEnum,
   confidence: z.number().min(0).max(1),
-  observed_units_per_carton: z.number().optional(),
+  observed_units_per_carton: z.number().nullish(),
   reason: z.string(),
-  evidence: z.array(EvidenceItem).optional(),
+  evidence: z.array(EvidenceItem).nullish(),
 });
 
 export const VariantObservation = z.object({
   verdict: VerdictEnum,
   confidence: z.number().min(0).max(1),
-  observed_colour: z.string().optional(),
-  observed_variant: z.string().optional(),
+  observed_colour: z.string().nullish(),
+  observed_variant: z.string().nullish(),
   reason: z.string(),
-  evidence: z.array(EvidenceItem).optional(),
+  evidence: z.array(EvidenceItem).nullish(),
 });
 
 export const DamageObservation = z.object({
   verdict: VerdictEnum,
   confidence: z.number().min(0).max(1),
-  damage_type: z.enum(['none', 'crushed', 'water', 'torn', 'punctured', 'other']).optional(),
-  severity: z.enum(['minor', 'moderate', 'severe']).optional(),
-  affected_area: z.string().optional(),
+  damage_type: z.enum(['none', 'crushed', 'water', 'torn', 'punctured', 'other']).nullish(),
+  severity: z.enum(['minor', 'moderate', 'severe']).nullish(),
+  affected_area: z.string().nullish(),
   reason: z.string(),
-  evidence: z.array(EvidenceItem).optional(),
+  evidence: z.array(EvidenceItem).nullish(),
 });
 
 export const ComponentObservation = z.object({
@@ -77,9 +77,9 @@ export const ComponentObservation = z.object({
     name: z.string(),
     status: z.enum(['present', 'missing', 'uncertain']),
     visible: z.boolean(),
-  })).optional(),
+  })).nullish(),
   reason: z.string(),
-  evidence: z.array(EvidenceItem).optional(),
+  evidence: z.array(EvidenceItem).nullish(),
 });
 
 export const ModelMetadata = z.object({

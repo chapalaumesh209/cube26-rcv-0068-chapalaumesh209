@@ -54,15 +54,9 @@ async function callGemini(
   modelName: string
 ): Promise<any> {
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Default to Gemini Flash models (gemini-2.0-flash / gemini-1.5-flash)
-  const resolvedModel = modelName || process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-  const model = genAI.getGenerativeModel({
-    model: resolvedModel,
-    generationConfig: {
-      temperature: 0.1,
-      responseMimeType: 'application/json',
-    },
-  });
+  let requestedModel = modelName || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  if (requestedModel === 'gemini-3-flash') requestedModel = 'gemini-3.8-flash';
+  if (requestedModel === 'gemini-2.0-flash') requestedModel = 'gemini-2.5-flash';
 
   const parts: any[] = [{ text: prompt }];
 
@@ -79,10 +73,36 @@ async function callGemini(
   }
 
   const startTime = Date.now();
-  const result = (await Promise.race([
-    model.generateContent(parts),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('VLM Timeout (30s)')), 30000)),
-  ])) as any;
+  let result: any;
+  let activeModel = requestedModel;
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: activeModel,
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: 'application/json',
+      },
+    });
+    result = await Promise.race([
+      model.generateContent(parts),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('VLM Timeout (30s)')), 30000)),
+    ]);
+  } catch (err: any) {
+    console.warn(`[VLM Client] Initial attempt with ${activeModel} failed (${err.message?.slice(0, 100)}). Falling back to gemini-2.5-flash.`);
+    activeModel = 'gemini-2.5-flash';
+    const fallbackModel = genAI.getGenerativeModel({
+      model: activeModel,
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: 'application/json',
+      },
+    });
+    result = await Promise.race([
+      fallbackModel.generateContent(parts),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('VLM Timeout (30s)')), 30000)),
+    ]);
+  }
 
   const latency = Date.now() - startTime;
   const responseText = result.response.text();
@@ -90,7 +110,7 @@ async function callGemini(
   return {
     responseText,
     latency,
-    modelVersion: resolvedModel,
+    modelVersion: activeModel,
   };
 }
 

@@ -24,7 +24,58 @@ UNCERTAIN HANDLING:
 If you cannot clearly see or determine a check, return "uncertain". Do not guess. If an item is occluded, quantity may be uncertain. If a label is unreadable, identity may be uncertain.
 
 OUTPUT FORMAT:
-Return a strictly formatted JSON object matching the requested schema. Ensure all findings are backed by visual evidence in the images provided. Include evidence items with bounding box regions if applicable, or observation descriptions.
+You MUST respond with a single, valid JSON object strictly conforming to this exact structure:
+{
+  "identity": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "observed_sku": "SKU string or null",
+    "label_readable": true | false,
+    "reason": "Detailed visual rationale"
+  },
+  "quantity": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "observed_quantity": number or null,
+    "occluded": true | false,
+    "reason": "Detailed visual rationale"
+  },
+  "cartons": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "observed_cartons": number or null,
+    "reason": "Detailed visual rationale"
+  },
+  "units_per_carton": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "observed_units_per_carton": number or null,
+    "reason": "Detailed visual rationale"
+  },
+  "variant": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "observed_colour": "Colour string or null",
+    "observed_variant": "Variant string or null",
+    "reason": "Detailed visual rationale"
+  },
+  "damage": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "damage_type": "none" | "crushed" | "water" | "torn" | "punctured" | "other",
+    "severity": "minor" | "moderate" | "severe",
+    "reason": "Detailed visual rationale"
+  },
+  "components": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "components": [
+      { "name": "string", "status": "present" | "missing" | "uncertain", "visible": true | false }
+    ],
+    "reason": "Detailed visual rationale"
+  }
+}
+Do NOT wrap in any extra outer keys. Do NOT include markdown commentary. Strictly output JSON matching these keys.
 `;
 
   if (catalogueRefs && catalogueRefs.length > 0) {
