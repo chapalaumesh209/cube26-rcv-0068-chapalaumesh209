@@ -8,37 +8,61 @@ import {
   EyeOff,
   Loader2,
   Package,
-  ClipboardCheck,
-  Scale,
   AlertTriangle,
+  ClipboardList,
+  BarChart3,
   BookOpen,
+  ArrowRight,
+  ShieldCheck,
+  Lock,
+  ChevronDown,
 } from "lucide-react";
 import { ReceivingSopModal } from "@/components/receiving-sop-modal";
 
-const WORKSPACES = [
+const STATIONS = [
   {
+    role: "operator",
     email: "operator@alpha.com",
-    title: "Dock operator",
-    desc: "Photograph inbound freight and record condition on arrival.",
+    title: "Dock Intake Operator",
+    station: "Bay 4 Intake Station",
+    desc: "Photograph arrivals, verify SKU & count, and run single-pass inspection at the bay.",
     target: "/receiving",
+    icon: Package,
+    color: "emerald",
+    badge: "Operational Intake",
   },
   {
+    role: "reviewer",
     email: "lead@alpha.com",
-    title: "Lead reviewer",
-    desc: "Adjudicate exceptions and uncertain units before put-away.",
+    title: "Lead Reviewer",
+    station: "Discrepancy Triage Desk",
+    desc: "Adjudicate transit defects, short-shipments, and occluded stock with binding audit trails.",
     target: "/review",
+    icon: AlertTriangle,
+    color: "amber",
+    badge: "Exception Review",
   },
   {
+    role: "admin",
     email: "admin@alpha.com",
-    title: "Site administrator",
-    desc: "Manifests, catalogue, access, and receiving policy.",
+    title: "Site Administrator",
+    station: "Operations & Policy Desk",
+    desc: "Import purchase order manifests, manage catalogue BOM, and configure access policies.",
     target: "/shipments",
+    icon: ClipboardList,
+    color: "indigo",
+    badge: "Manifests & Policy",
   },
   {
+    role: "evaluator",
     email: "evaluator@alpha.com",
-    title: "Quality lead",
-    desc: "Held-out receiving accuracy against the eight checks.",
+    title: "Quality Assurance Lead",
+    station: "Quality & Compliance Lab",
+    desc: "Score held-out 50-unit benchmark suite, Cohen's kappa agreement, and error rates.",
     target: "/evaluation",
+    icon: BarChart3,
+    color: "purple",
+    badge: "Benchmark & Accuracy",
   },
 ];
 
@@ -49,6 +73,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showCustomLogin, setShowCustomLogin] = useState(false);
   const [sopOpen, setSopOpen] = useState(false);
 
   const handleLogin = async (targetEmail?: string, customTarget?: string) => {
@@ -67,7 +92,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Sign-in failed");
+        setError(data.error || "Authentication failed. Check credentials.");
         setLoadingKey(null);
         return;
       }
@@ -84,155 +109,236 @@ export default function LoginPage() {
       router.push(destination);
       router.refresh();
     } catch {
-      setError("Network error. Try again.");
+      setError("Network connection error. Please try again.");
       setLoadingKey(null);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 grid lg:grid-cols-2">
-      <section className="hidden lg:flex flex-col justify-between p-12 border-r border-slate-800 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-brand-900/40 via-slate-950 to-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-brand-500 selection:text-white relative overflow-hidden">
+      {/* Background Subtle Gradient Lighting */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-brand-600/15 via-indigo-600/5 to-transparent blur-3xl pointer-events-none" />
+
+      {/* Top Navigation Bar */}
+      <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-5 flex items-center justify-between border-b border-slate-800/80">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="font-bold tracking-tight">DockProof</p>
-            <p className="text-xs text-slate-400">Receiving Manager</p>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-base tracking-tight text-white">DockProof</span>
+              <span className="text-[10px] uppercase font-bold tracking-widest bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full">
+                RCV · Pod 01
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400">Autonomous Inbound Receiving Manager</p>
           </div>
         </div>
 
-        <div className="max-w-md space-y-6">
-          <h1 className="text-4xl font-extrabold tracking-tight leading-tight">
-            Prove what arrived before it enters the building.
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Bay Intake Pipeline Active</span>
+          </div>
+
+          <button
+            onClick={() => setSopOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 transition-colors shadow-sm"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-brand-400" />
+            <span>Receiving SOP</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Body */}
+      <main className="relative z-10 w-full max-w-5xl mx-auto px-6 py-10 flex-1 flex flex-col justify-center space-y-8">
+        {/* Header Hero Title */}
+        <div className="text-center space-y-2.5 max-w-2xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            Select Operational Station
           </h1>
           <p className="text-sm text-slate-400 leading-relaxed">
-            A pallet is photographed at the bay. DockProof records identity, count, carton
-            structure, variant, damage, and missing components against the purchase order.
-            Prep and claims inherit that record — not a signed clean bill of lading with no proof.
+            Autonomous optical verification at the receiving bay. Single-pass multimodal inspection against Purchase Orders with pure deterministic commercial verdicts.
           </p>
-          <ul className="space-y-3 text-sm">
-            {[
-              { icon: Package, text: "Match SKU, colour, and pack spec to the PO line" },
-              { icon: ClipboardCheck, text: "Count cartons and units; flag shortage or overage" },
-              { icon: AlertTriangle, text: "Catch crush, water, tears, and empty accessory cavities" },
-              { icon: Scale, text: "Rules own PASS / EXCEPTION / UNCERTAIN — never a guess" },
-            ].map((item) => (
-              <li key={item.text} className="flex items-start gap-3 text-slate-300">
-                <item.icon className="w-4 h-4 mt-0.5 text-brand-400 shrink-0" />
-                {item.text}
-              </li>
-            ))}
-          </ul>
         </div>
 
-        <div className="pt-4 border-t border-slate-800 space-y-3">
+        {error && (
+          <div className="max-w-md mx-auto p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs text-center flex items-center justify-center gap-2 animate-fade-in">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* 4 Station Workspace Cards (Grid 2x2) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {STATIONS.map((st) => {
+            const Icon = st.icon;
+            const isLoading = loadingKey === st.email;
+
+            return (
+              <button
+                key={st.role}
+                onClick={() => handleLogin(st.email, st.target)}
+                disabled={Boolean(loadingKey)}
+                className="group relative text-left p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-brand-500/60 transition-all duration-200 hover:shadow-xl hover:shadow-brand-500/5 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                          st.color === "emerald"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20"
+                            : st.color === "amber"
+                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:bg-amber-500/20"
+                            : st.color === "purple"
+                            ? "bg-purple-500/10 text-purple-400 border border-purple-500/20 group-hover:bg-purple-500/20"
+                            : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500/20"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm text-white group-hover:text-brand-300 transition-colors">
+                          {st.title}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 font-mono">{st.station}</p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                        st.color === "emerald"
+                          ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
+                          : st.color === "amber"
+                          ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
+                          : st.color === "purple"
+                          ? "bg-purple-950/60 text-purple-300 border-purple-800/60"
+                          : "bg-indigo-950/60 text-indigo-300 border-indigo-800/60"
+                      }`}
+                    >
+                      {st.badge}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-400 leading-relaxed">{st.desc}</p>
+                </div>
+
+                <div className="pt-4 mt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-slate-500 font-mono">1-Click Launch</span>
+                  <div className="flex items-center gap-1 font-semibold text-brand-400 group-hover:text-brand-300 transition-colors">
+                    {isLoading ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-brand-400">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Authenticating…
+                      </span>
+                    ) : (
+                      <>
+                        <span>Enter Workspace</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Optional Custom Organization Login Accordion */}
+        <div className="max-w-md mx-auto w-full pt-2">
           <button
             type="button"
-            onClick={() => setSopOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/40 rounded-xl text-xs font-semibold transition-colors"
+            onClick={() => setShowCustomLogin(!showCustomLogin)}
+            className="w-full flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors py-1.5"
           >
-            <BookOpen className="w-4 h-4 text-brand-400" />
-            <span>Explore Receiving Manager SOP & Specification</span>
-          </button>
-          <p className="text-[11px] text-slate-500 text-center">
-            Evidence is sealed per receipt. Overrides preserve original visual facts.
-          </p>
-        </div>
-      </section>
-
-      <section className="flex flex-col justify-center p-6 sm:p-12">
-        <div className="lg:hidden flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center">
-            <Shield className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <p className="font-bold">DockProof</p>
-            <p className="text-[11px] text-slate-400">Receiving Manager</p>
-          </div>
-        </div>
-
-        <div className="max-w-md w-full mx-auto space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Sign in</h2>
-            <p className="text-sm text-slate-400 mt-1">
-              Open the workspace that matches your job on the dock.
-            </p>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs rounded-xl">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            {WORKSPACES.map((ws) => {
-              const loading = loadingKey === ws.email;
-              return (
-                <button
-                  key={ws.title}
-                  onClick={() => handleLogin(ws.email, ws.target)}
-                  disabled={Boolean(loadingKey)}
-                  className="w-full text-left p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-brand-500/50 transition-colors disabled:opacity-50"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">{ws.title}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{ws.desc}</p>
-                    </div>
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-brand-400 shrink-0" />
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleLogin();
-            }}
-            className="space-y-3 pt-2 border-t border-slate-800"
-          >
-            <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
-              Organization credentials
-            </p>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Work email"
-              className="w-full px-3 py-2.5 text-sm bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            <Lock className="w-3.5 h-3.5 text-slate-500" />
+            <span>Sign in with custom organization credentials</span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 transition-transform ${showCustomLogin ? "rotate-180" : ""}`}
             />
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full px-3 py-2.5 pr-10 text-sm bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            <button
-              type="submit"
-              disabled={Boolean(loadingKey) || !email || !password}
-              className="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+          </button>
+
+          {showCustomLogin && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleLogin();
+              }}
+              className="mt-3 p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-3 animate-slide-in"
             >
-              {loadingKey === email ? <Loader2 className="w-4 h-4 animate-spin" /> : "Continue"}
-            </button>
-          </form>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                  Work Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="operator@alpha.com"
+                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3 py-2 pr-9 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  >
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={Boolean(loadingKey) || !email || !password}
+                className="w-full py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5 shadow"
+              >
+                {loadingKey === email ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  "Continue to Workspace"
+                )}
+              </button>
+            </form>
+          )}
         </div>
-      </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 w-full max-w-7xl mx-auto px-6 py-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span>Pure Deterministic Decision Engine · Sealed rcv.v1 Evidence Contract</span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setSopOpen(true)}
+            className="hover:text-slate-300 transition-colors"
+          >
+            Receiving Specification & 8 Gates
+          </button>
+          <span>·</span>
+          <span>CUBE Buildathon 2026</span>
+        </div>
+      </footer>
+
+      {/* SOP Modal */}
       <ReceivingSopModal open={sopOpen} onOpenChange={setSopOpen} />
     </div>
   );
