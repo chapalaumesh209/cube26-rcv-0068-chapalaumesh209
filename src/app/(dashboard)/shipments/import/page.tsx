@@ -1,109 +1,155 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, UploadCloud, File, CheckCircle2 } from 'lucide-react'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { ArrowLeft, UploadCloud, File, CheckCircle2, AlertTriangle, Shield } from "lucide-react";
 
 export default function ImportShipmentsPage() {
-  const [file, setFile] = useState<File | null>(null)
-  const [importing, setImporting] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [importedCount, setImportedCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) setCurrentUser(data.user);
+      })
+      .catch(() => {});
+  }, []);
+
+  const isEvaluator = currentUser?.role === "evaluator";
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    if (isEvaluator) return;
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0])
+      setFile(e.dataTransfer.files[0]);
     }
-  }
+  };
 
-  const handleImport = () => {
-    setImporting(true)
-    setTimeout(() => {
-      setImporting(false)
-      setSuccess(true)
-    }, 2000)
-  }
+  const handleImport = async () => {
+    if (!file || isEvaluator) return;
+
+    setImporting(true);
+    setErrorMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/shipments/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || "Import failed");
+      } else {
+        setImportedCount(data.imported || 0);
+        setSuccess(true);
+      }
+    } catch {
+      setErrorMessage("Network error during CSV ingestion.");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div>
-        <Link href="/shipments" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4">
+        <Link href="/shipments" className="inline-flex items-center text-xs text-slate-500 hover:text-slate-900 mb-4">
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Shipments
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Import Shipments (CSV)</h1>
-        <p className="text-sm text-gray-500 mt-1">Upload a CSV file containing shipment data.</p>
+        <h1 className="text-xl font-bold text-slate-900">Inbound Shipment Ingestion (CSV)</h1>
+        <p className="text-xs text-slate-500 mt-1">
+          Upload receiving manifest conforming to the organizer schema.
+        </p>
       </div>
 
+      {isEvaluator && (
+        <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900 flex items-start gap-2.5">
+          <Shield className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold">Evaluator Credentials (Read-Only Mode):</span>
+            <p className="text-purple-700 mt-0.5">
+              Shipment creation and CSV ingestion are disabled for the Evaluator role to prevent operational data mutation during evaluation benchmarks. Switch to Operator or Admin using the top header to import.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {!success ? (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-6">
-          <div 
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-6">
+          <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:bg-gray-50 transition-colors"
+            className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
+              isEvaluator ? "border-slate-200 bg-slate-50 cursor-not-allowed opacity-60" : "border-slate-300 hover:bg-slate-50 cursor-pointer"
+            }`}
           >
-            <UploadCloud className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <UploadCloud className="mx-auto h-12 w-12 text-slate-400 mb-3" />
             {file ? (
-              <div className="flex items-center justify-center text-sm text-gray-900">
-                <File className="w-4 h-4 mr-2 text-[#4F46E5]" />
-                {file.name}
+              <div className="flex items-center justify-center text-xs font-semibold text-slate-900">
+                <File className="w-4 h-4 mr-2 text-brand-600" />
+                {file.name} ({(file.size / 1024).toFixed(1)} KB)
               </div>
             ) : (
               <div>
-                <p className="text-sm font-medium text-gray-900">Drag and drop your CSV file here</p>
-                <p className="text-xs text-gray-500 mt-1">or click to browse</p>
+                <p className="text-sm font-semibold text-slate-800">Drag & drop receiving CSV manifest here</p>
+                <p className="text-xs text-slate-400 mt-1">Supports organizer receiving_sample.csv format</p>
+                {!isEvaluator && (
+                  <label className="mt-3 inline-block px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer">
+                    Browse File
+                    <input
+                      type="file"
+                      accept=".csv"
+                      className="hidden"
+                      onChange={(e) => e.target.files && setFile(e.target.files[0])}
+                    />
+                  </label>
+                )}
               </div>
             )}
           </div>
 
-          {file && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-900">Preview (First 2 rows)</h3>
-              <div className="border border-gray-200 rounded-md overflow-hidden">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-gray-50 text-gray-500">
-                    <tr>
-                      <th className="px-4 py-2">PO_NUMBER</th>
-                      <th className="px-4 py-2">SKU</th>
-                      <th className="px-4 py-2">QUANTITY</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    <tr>
-                      <td className="px-4 py-2">PO-1001</td>
-                      <td className="px-4 py-2">SKU-A1</td>
-                      <td className="px-4 py-2">50</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2">PO-1002</td>
-                      <td className="px-4 py-2">SKU-B2</td>
-                      <td className="px-4 py-2">120</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="flex justify-end">
-                <button 
-                  onClick={handleImport}
-                  disabled={importing}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 bg-[#4F46E5] text-white shadow hover:bg-[#4F46E5]/90 h-9 px-4 py-2 w-full sm:w-auto"
-                >
-                  {importing ? 'Importing...' : 'Start Import'}
-                </button>
-              </div>
+          {file && !isEvaluator && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleImport}
+                disabled={importing}
+                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors shadow"
+              >
+                {importing ? "Processing Manifest..." : "Ingest & Seed Shipments"}
+              </button>
             </div>
           )}
         </div>
       ) : (
-        <div className="bg-white border border-[#10B981] rounded-lg shadow-sm p-8 text-center">
-          <CheckCircle2 className="mx-auto h-16 w-16 text-[#10B981] mb-4" />
-          <h2 className="text-xl font-bold text-gray-900">Import Successful!</h2>
-          <p className="text-sm text-gray-500 mt-2 mb-6">Your shipment data has been successfully imported and processed.</p>
-          <Link href="/shipments" className="text-[#4F46E5] font-medium hover:underline">
-            View Shipments
-          </Link>
+        <div className="bg-white border border-emerald-300 rounded-xl shadow-sm p-8 text-center space-y-3">
+          <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" />
+          <h2 className="text-lg font-bold text-slate-900">Shipments Ingested Successfully!</h2>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            {importedCount} purchase order lines have been ingested and mapped into tenant shipments.
+          </p>
+          <div className="pt-3">
+            <Link href="/shipments" className="px-4 py-2 bg-brand-600 text-white rounded-lg text-xs font-semibold hover:bg-brand-700">
+              View Active Shipments
+            </Link>
+          </div>
         </div>
       )}
     </div>
-  )
+  );
 }
