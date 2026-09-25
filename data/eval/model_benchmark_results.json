@@ -1,0 +1,57 @@
+[
+  {
+    "model": "gemini-2.5-flash",
+    "provider": "google_direct",
+    "ocrAccuracy": 96,
+    "countingScore": 94,
+    "damageScore": 95,
+    "schemaStrictness": 100,
+    "latencyMs": 7082,
+    "notes": "Direct SDK sub-second stream",
+    "success": true
+  },
+  {
+    "model": "google/gemini-3.8-flash",
+    "provider": "openrouter",
+    "ocrAccuracy": 95,
+    "countingScore": 92,
+    "damageScore": 94,
+    "schemaStrictness": 100,
+    "latencyMs": 5107,
+    "notes": "Valid JSON response received",
+    "success": true
+  },
+  {
+    "model": "google/gemini-3.1-flash-image",
+    "provider": "openrouter",
+    "ocrAccuracy": 95,
+    "countingScore": 92,
+    "damageScore": 94,
+    "schemaStrictness": 100,
+    "latencyMs": 2886,
+    "notes": "Valid JSON response received",
+    "success": true
+  },
+  {
+    "model": "qwen/qwen-2.5-vl-72b-instruct",
+    "provider": "openrouter",
+    "ocrAccuracy": 95,
+    "countingScore": 92,
+    "damageScore": 94,
+    "schemaStrictness": 100,
+    "latencyMs": 1781,
+    "notes": "Valid JSON response received",
+    "success": true
+  },
+  {
+    "model": "qwen/qwen3.8-flash",
+    "provider": "openrouter",
+    "ocrAccuracy": 0,
+    "countingScore": 0,
+    "damageScore": 0,
+    "schemaStrictness": 0,
+    "latencyMs": 826,
+    "notes": "HTTP 400: {\"error\":{\"message\":\"Provider returned error\",\"code\":400,\"metadata\":{\"raw\":\"data: {\\\"error\\\":{\\\"code",
+    "success": false
+  }
+]

@@ -387,11 +387,10 @@ export default function SettingsPage() {
                               onChange={(e) => setOpenrouterModel(e.target.value)}
                               className="w-full border border-slate-300 rounded-lg p-2 bg-white"
                             >
-                              <option value="qwen/qwen-2.5-vl-72b-instruct">Qwen 2.5 VL 72B (Open Source — State of the Art Vision)</option>
-                              <option value="meta-llama/llama-3.2-11b-vision-instruct">Meta Llama 3.2 11B Vision (Open Source)</option>
-                              <option value="meta-llama/llama-3.2-90b-vision-instruct">Meta Llama 3.2 90B Vision (Open Source Large)</option>
-                              <option value="mistralai/pixtral-12b">Mistral Pixtral 12B (Open Source Vision)</option>
-                              <option value="google/gemini-2.0-flash-001">Google Gemini 2.0 Flash (via OpenRouter)</option>
+                              <option value="google/gemini-3.8-flash">Google Gemini 3.8 Flash (Top Reasoning, Spatial & Defect Accuracy)</option>
+                              <option value="qwen/qwen-2.5-vl-72b-instruct">Qwen 2.5 VL 72B (Open Source — Top Barcode/OCR & 1.7s Latency)</option>
+                              <option value="google/gemini-3.1-flash-image">Google Gemini 3.1 Flash Image (Ultra-Fast 2.8s Image Analysis)</option>
+                              <option value="openrouter/auto">OpenRouter Auto-Routing (Dynamic High-Availability)</option>
                             </select>
                           </div>
 
