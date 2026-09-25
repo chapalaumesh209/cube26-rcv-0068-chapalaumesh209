@@ -13,7 +13,8 @@ import {
   organizations 
 } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { runMockInspection } from '@/lib/agents/mock-vlm';
+import { runVLMInspection } from '@/lib/agents/vlm-client';
+import { compileInspectionPrompt } from '@/lib/agents/prompt-compiler';
 import { 
   computeOverallVerdict,
   computeIdentityVerdict,
@@ -89,11 +90,26 @@ export async function POST(request: Request, { params }: { params: { id: string 
       components: product?.componentsJson ? JSON.parse(product.componentsJson) : ['Main Unit', 'Accessory', 'Manual'],
     };
 
+    const photos = await db
+      .select()
+      .from(inspectionPhotos)
+      .where(eq(inspectionPhotos.inspectionId, inspectionId));
+
     let observation: any;
     let failOpen = false;
 
     try {
-      observation = await runMockInspection(expectedState, unit);
+      const prompt = compileInspectionPrompt(expectedState, [], photos);
+      observation = await runVLMInspection(
+        prompt,
+        photos.map((p) => ({
+          id: p.id,
+          objectKey: p.objectKey,
+          role: p.role || 'inspection_photo',
+          url: p.objectKey ? `/fixtures/${p.objectKey}` : undefined,
+        })),
+        expectedState
+      );
     } catch {
       failOpen = true;
     }
@@ -154,13 +170,13 @@ export async function POST(request: Request, { params }: { params: { id: string 
       .where(eq(inspections.id, inspectionId));
 
     // Build sealed evidence record
-    const photos = await db.select().from(inspectionPhotos).where(eq(inspectionPhotos.inspectionId, inspectionId));
+    const latestPhotos = await db.select().from(inspectionPhotos).where(eq(inspectionPhotos.inspectionId, inspectionId));
     const [org] = await db.select().from(organizations).where(eq(organizations.id, session.orgId));
     
     const evidencePayload = buildEvidenceRecord(
       { ...inspection, overallVerdict, completedAt: now, status: 'completed' },
       checks,
-      photos,
+      latestPhotos,
       [],
       unit || { unitCode: 'UNIT-UNKNOWN', sku: expectedState.sku },
       org || { id: session.orgId }

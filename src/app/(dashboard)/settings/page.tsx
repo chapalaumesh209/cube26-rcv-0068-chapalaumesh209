@@ -33,14 +33,20 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [vlmMode, setVlmMode] = useState("mock");
-  const [modelVersion, setModelVersion] = useState("gemini-1.5-pro");
+  const [provider, setProvider] = useState("gemini");
+  const [geminiKey, setGeminiKey] = useState("");
+  const [geminiModel, setGeminiModel] = useState("gemini-2.0-flash");
+  const [openrouterKey, setOpenrouterKey] = useState("");
+  const [openrouterModel, setOpenrouterModel] = useState("qwen/qwen-2.5-vl-72b-instruct");
   const [saveNotice, setSaveNotice] = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const fetchSession = async () => {
     try {
-      const [meRes, auditRes] = await Promise.all([
+      const [meRes, auditRes, vlmRes] = await Promise.all([
         fetch("/api/auth/me"),
         fetch("/api/audit"),
+        fetch("/api/settings/vlm"),
       ]);
 
       if (meRes.ok) {
@@ -54,6 +60,14 @@ export default function SettingsPage() {
       if (auditRes.ok) {
         const auditData = await auditRes.json();
         setAuditEvents(auditData.events || []);
+      }
+
+      if (vlmRes.ok) {
+        const vlmData = await vlmRes.json();
+        setVlmMode(vlmData.vlmMode || "mock");
+        setProvider(vlmData.provider || "gemini");
+        setGeminiModel(vlmData.geminiModel || "gemini-2.0-flash");
+        setOpenrouterModel(vlmData.openrouterModel || "qwen/qwen-2.5-vl-72b-instruct");
       }
     } catch (err) {
       console.error("Error loading settings:", err);
@@ -289,62 +303,151 @@ export default function SettingsPage() {
               ) : (
                 <div className="space-y-4 max-w-lg text-xs">
                   <div className="border-b pb-3">
-                    <h2 className="text-base font-bold text-slate-900">VLM & AI Pipeline Settings</h2>
-                    <p className="text-slate-500">Single-call multimodal inference provider configuration.</p>
+                    <h2 className="text-base font-bold text-slate-900">VLM & AI Vision Pipeline</h2>
+                    <p className="text-slate-500">Configure single-call multimodal inference: Google Gemini Flash or OpenRouter open-source vision models.</p>
                   </div>
 
+                  {/* Mode Selector */}
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">VLM Engine Mode</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Inference Engine</label>
                     <select
                       value={vlmMode}
                       onChange={(e) => setVlmMode(e.target.value)}
                       className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     >
-                      <option value="mock">Local Deterministic Mock (Testing & Offline)</option>
-                      <option value="live">Google Gemini 1.5 Pro / Flash (Live Multimodal API)</option>
+                      <option value="mock">Offline / Local Deterministic Mock Engine</option>
+                      <option value="live">Live Multimodal API (Google Gemini or OpenRouter)</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Vision Model Architecture</label>
-                    <select
-                      value={modelVersion}
-                      onChange={(e) => setModelVersion(e.target.value)}
-                      className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                    >
-                      <option value="gemini-1.5-pro">Gemini 1.5 Pro (Recommended for High Precision)</option>
-                      <option value="gemini-1.5-flash">Gemini 1.5 Flash (Sub-Second Latency)</option>
-                    </select>
-                  </div>
+                  {vlmMode === "live" && (
+                    <>
+                      {/* Provider Selector */}
+                      <div>
+                        <label className="block font-semibold text-slate-700 mb-1">Vision Provider</label>
+                        <select
+                          value={provider}
+                          onChange={(e) => setProvider(e.target.value)}
+                          className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                        >
+                          <option value="gemini">Google Gemini API (Official SDK)</option>
+                          <option value="openrouter">OpenRouter (Open-Source & Commercial Vision Models)</option>
+                        </select>
+                      </div>
 
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Google GenAI API Key</label>
-                    <div className="relative">
-                      <input
-                        type={showKey ? "text" : "password"}
-                        readOnly
-                        value={process.env.NEXT_PUBLIC_GEMINI_KEY || "AIzaSy••••••••••••••••••••••••••••••••"}
-                        className="w-full border border-slate-300 rounded-lg p-2 pr-10 bg-slate-50 font-mono"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowKey(!showKey)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
+                      {/* Google Gemini Section */}
+                      {provider === "gemini" && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                          <span className="font-semibold text-slate-800 block text-xs">Google Gemini Configuration</span>
+                          <div>
+                            <label className="block text-[11px] text-slate-600 mb-1">Gemini Model</label>
+                            <select
+                              value={geminiModel}
+                              onChange={(e) => setGeminiModel(e.target.value)}
+                              className="w-full border border-slate-300 rounded-lg p-2 bg-white"
+                            >
+                              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Recommended — Sub-Second Multimodal)</option>
+                              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast & Cost-Efficient)</option>
+                              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Multimodal Reasoning)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] text-slate-600 mb-1">Google GenAI API Key (GEMINI_API_KEY)</label>
+                            <div className="relative">
+                              <input
+                                type={showKey ? "text" : "password"}
+                                value={geminiKey}
+                                onChange={(e) => setGeminiKey(e.target.value)}
+                                placeholder="Paste your AIzaSy... API key here"
+                                className="w-full border border-slate-300 rounded-lg p-2 pr-10 bg-white font-mono"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowKey(!showKey)}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                              >
+                                {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-1">Get an API key from Google AI Studio (aistudio.google.com).</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* OpenRouter Section */}
+                      {provider === "openrouter" && (
+                        <div className="p-3 bg-purple-50/50 rounded-xl border border-purple-200 space-y-3">
+                          <span className="font-semibold text-purple-950 block text-xs">OpenRouter Vision Models Configuration</span>
+                          <div>
+                            <label className="block text-[11px] text-slate-600 mb-1">Model Architecture</label>
+                            <select
+                              value={openrouterModel}
+                              onChange={(e) => setOpenrouterModel(e.target.value)}
+                              className="w-full border border-slate-300 rounded-lg p-2 bg-white"
+                            >
+                              <option value="qwen/qwen-2.5-vl-72b-instruct">Qwen 2.5 VL 72B (Open Source — State of the Art Vision)</option>
+                              <option value="meta-llama/llama-3.2-11b-vision-instruct">Meta Llama 3.2 11B Vision (Open Source)</option>
+                              <option value="meta-llama/llama-3.2-90b-vision-instruct">Meta Llama 3.2 90B Vision (Open Source Large)</option>
+                              <option value="mistralai/pixtral-12b">Mistral Pixtral 12B (Open Source Vision)</option>
+                              <option value="google/gemini-2.0-flash-001">Google Gemini 2.0 Flash (via OpenRouter)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] text-slate-600 mb-1">OpenRouter API Key (OPENROUTER_API_KEY)</label>
+                            <div className="relative">
+                              <input
+                                type={showKey ? "text" : "password"}
+                                value={openrouterKey}
+                                onChange={(e) => setOpenrouterKey(e.target.value)}
+                                placeholder="Paste your sk-or-v1-... key here"
+                                className="w-full border border-slate-300 rounded-lg p-2 pr-10 bg-white font-mono"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowKey(!showKey)}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                              >
+                                {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-1">Get an API key from openrouter.ai/keys.</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setSaveNotice("Configuration saved successfully.");
-                      setTimeout(() => setSaveNotice(""), 3000);
+                    disabled={savingSettings}
+                    onClick={async () => {
+                      setSavingSettings(true);
+                      try {
+                        const res = await fetch("/api/settings/vlm", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            vlmMode,
+                            provider,
+                            geminiKey,
+                            geminiModel,
+                            openrouterKey,
+                            openrouterModel,
+                          }),
+                        });
+                        if (res.ok) {
+                          setSaveNotice("VLM model configuration saved and applied immediately!");
+                          setTimeout(() => setSaveNotice(""), 4000);
+                        }
+                      } finally {
+                        setSavingSettings(false);
+                      }
                     }}
-                    className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold transition-colors"
+                    className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
                   >
-                    Save Model Settings
+                    {savingSettings ? "Saving..." : "Save & Apply VLM Configuration"}
                   </button>
                 </div>
               )}
