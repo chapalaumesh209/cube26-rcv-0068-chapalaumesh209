@@ -346,8 +346,9 @@ export default function SettingsPage() {
                               onChange={(e) => setGeminiModel(e.target.value)}
                               className="w-full border border-slate-300 rounded-lg p-2 bg-white"
                             >
-                              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Recommended — Sub-Second Multimodal)</option>
-                              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast & Cost-Efficient)</option>
+                              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Recommended — Ultra-Fast Multimodal)</option>
+                              <option value="gemini-3-flash">Gemini 3 Flash (Preview / Next-Gen Vision)</option>
+                              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Production Standard)</option>
                               <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Multimodal Reasoning)</option>
                             </select>
                           </div>
