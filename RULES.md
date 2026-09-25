@@ -1,39 +1,65 @@
-# Engineering & Repository Rules: Receiving Manager (RCV)
+# Rules
 
-> **CUBE Buildathon · Round 2 · Track 01: Receiving Manager**
+There are two sets. The **repository rules** define how participants manage their individual Round 2 work, and the **engineering rules** are part of what you are assessed on.
 
----
+## Repository rules
 
-## 1. Core Engineering Rules
+| #  | Rule                                                                                                        | How it's enforced                                               |
+| -- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| R1 | Round 2 is an **individual build**.                                                                         | Participant responsibility                                      |
+| R2 | Each participant must work in their **own GitHub fork** of this repository.                                 | Participant responsibility                                      |
+| R3 | Your fork is your Round 2 development and final submission repository.                                      | Participant responsibility                                      |
+| R4 | All code commits forming your Round 2 submission must be made during the **authorised build phase**.        | Repository history / evaluation                                 |
+| R5 | Do not continue making Round 2 code changes after the build phase ends.                                     | Repository history / evaluation                                 |
+| R6 | No secrets in the repo: API keys, tokens, passwords, `.env` files.                                          | You. A leaked key is revoked, and it may affect the submission. |
+| R7 | Do not edit, delete or interfere with the organiser's official repository or another participant's work.    | Participant responsibility                                      |
+| R8 | Once the official submission form is submitted, the submission is **final**. No resubmissions are accepted. | Submission process                                              |
 
-### Rule 1: Single Multimodal Call Per Physical Unit
-All 8 required receiving checks (`identity`, `quantity`, `carton_count`, `units_per_carton`, `variant`, `carton_damage`, `unit_damage`, `components`) must be performed within **exactly one single batched multimodal request** per physical receiving unit. Multi-call per unit loops or chaining calls are strictly prohibited to prevent latency spikes and runaway token costs.
+The official repository, shared `data/` files and top-level documentation are provided as reference resources. Build your solution in **your own fork**.
 
-### Rule 2: Pure Deterministic Verdict Ownership
-The Vision-Language Model (VLM) is strictly an observation extraction tool. It extracts factual visual observations, OCR text, and localized confidence scores. The commercial verdicts (`PASS`, `EXCEPTION`, `UNCERTAIN`) are strictly owned and computed by a deterministic business rules engine. A model must never make binding commercial acceptance decisions directly.
+If any shared documentation or data appears incorrect or contradictory, raise it with the organisers rather than silently modifying the official repository.
 
-### Rule 3: Zero Masked Failures
-Any single failed check unconditionally forces an overall `EXCEPTION` commercial outcome. For example, if SKU identity, quantity, and carton count match 100%, but packaging has a crushed corner or water damage, the unit MUST be flagged as an `EXCEPTION`. Defect masking is strictly prohibited.
+### Round 2 timeline
 
-### Rule 4: First-Class Uncertainty
-`UNCERTAIN` is an intentional, first-class commercial verdict, not a low-confidence PASS. If a back row of cartons is occluded, or barcode glare obscures a serial number, the system MUST abstain with `UNCERTAIN` and route the unit to a human lead reviewer. Guessing or hallucinating occluded stock is prohibited.
+* **Build phase begins:** 25 September 2026 · 9:00 AM IST
+* **Submissions open:** 27 September 2026
+* **Final submission deadline:** 1 October 2026 · 6:00 PM IST
 
-### Rule 5: Fail-Open Operational Safety
-If an external API call times out (>30 seconds) or network connectivity degrades, the system must fail open: persisting the receipt as `pending_inspection` with `fail_open=true`, alerting human lead reviewers without stalling dock unloading operations.
+The submission form closes permanently at the final deadline.
 
-### Rule 6: Strict Multi-Tenant Isolation
-All database queries, image fixtures, audit logs, and inspection states must enforce complete logical and cryptographic separation by tenant organization ID (`org_demo_alpha` vs `org_demo_bravo`). Contamination or cross-tenant leakage constitutes an immediate critical failure.
+**There is no reopening and no resubmission.**
 
-### Rule 7: Immutable Evidence Contract (`rcv.v1`)
-Every completed inspection must produce an immutable, versioned evidence contract containing:
-- Complete input manifest and catalogue references
-- Exact visual observations and model latency
-- Cryptographic SHA-256 tamper-evident integrity hash
-- Non-destructive human lead adjudication audit trail
+## Engineering rules (not negotiable)
 
----
+These are the craft part of the assessment. Each one is cheap to follow now and expensive to retrofit.
 
-## 2. Never Commit Secrets
-- Never commit API keys (`GEMINI_API_KEY`, `OPENROUTER_API_KEY`), `.env.local` files, or production credentials to git history.
-- Use `.env.example` as a template for public documentation.
-- Maintain credentials strictly in untracked local environment files.
+### 1. Tenancy isolation before any feature
+
+Every table gets row-level security scoped to the organisation, **enabled and forced**. Test that a second organisation sees zero rows, and that it can't fetch another organisation's image by guessing a key. Row isolation with a shared, guessable image path is a leak that looks green.
+
+*The sample data has two orgs (`org_demo_alpha`, `org_demo_bravo`) for exactly this test.*
+
+### 2. Batch your model calls
+
+Make **one** call per unit carrying all checks, never one call per check. At prep volumes that is the difference between a 90% gross margin and none.
+
+### 3. Fail open
+
+A model error or timeout still saves the capture and still produces a record, marked `pending`. Nothing blocks the operator. Anything that makes a warehouse line wait gets worked around within a day of deployment.
+
+### 4. Uncertain is a valid verdict
+
+It isn't a low-confidence pass. A model that declines to judge a bad photo is more credible to an operations person than one that is confidently wrong. Build it as a first-class outcome and show it in the interface.
+
+*The sample data uses `uncertain` and `pending_review` as values on purpose.*
+
+### 5. Look authoritative rules up
+
+Where the channel publishes the requirement, retrieve it. Don't let a model recall it from memory, and don't infer it from examples. **That includes the sample CSVs in this repo.** Their requirement flags and fee amounts are dummy values.
+
+## Honesty rules (assessed)
+
+* **Say what you built, not what it sounds like.** You have a content hash. You don't have a tamper-evident, immutable or anchored record, unless you actually built one and can show it.
+* **Overrides are data.** When an operator disagrees with the agent, capture the original verdict, the new verdict and a reason. Never discard those rows silently.
+* **"It works well" isn't a result.** Report a number per check, with false positives and false negatives separately and the method written down. An honest 61% you can break down beats a 95% you can't.
+* **Contradictions are findings.** Where the background documents disagree, raise it. Don't silently pick one side.
