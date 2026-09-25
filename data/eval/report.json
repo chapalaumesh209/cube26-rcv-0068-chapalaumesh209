@@ -1,0 +1,432 @@
+{
+  "benchmark_version": "cube-rcv-v1.0",
+  "evaluated_at": "2026-09-25T07:27:31.688Z",
+  "total_units": 50,
+  "metrics": {
+    "accuracy": 1,
+    "false_positive_rate": 0,
+    "false_negative_rate": 0,
+    "uncertain_calibration_rate": 1,
+    "cohens_kappa": 0.9292786421499293,
+    "average_latency_ms": 965.8
+  },
+  "confusion_matrix": {
+    "pass": {
+      "pass": 15,
+      "exception": 0,
+      "uncertain": 0
+    },
+    "exception": {
+      "pass": 0,
+      "exception": 30,
+      "uncertain": 0
+    },
+    "uncertain": {
+      "pass": 0,
+      "exception": 0,
+      "uncertain": 5
+    }
+  },
+  "results_summary": [
+    {
+      "unitId": "EVAL-0001",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 1136
+    },
+    {
+      "unitId": "EVAL-0002",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 879
+    },
+    {
+      "unitId": "EVAL-0003",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 885
+    },
+    {
+      "unitId": "EVAL-0004",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 936
+    },
+    {
+      "unitId": "EVAL-0005",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 767
+    },
+    {
+      "unitId": "EVAL-0006",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 972
+    },
+    {
+      "unitId": "EVAL-0007",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 852
+    },
+    {
+      "unitId": "EVAL-0008",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 944
+    },
+    {
+      "unitId": "EVAL-0009",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 933
+    },
+    {
+      "unitId": "EVAL-0010",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 1098
+    },
+    {
+      "unitId": "EVAL-0011",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 996
+    },
+    {
+      "unitId": "EVAL-0012",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 792
+    },
+    {
+      "unitId": "EVAL-0013",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 751
+    },
+    {
+      "unitId": "EVAL-0014",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 896
+    },
+    {
+      "unitId": "EVAL-0015",
+      "category": "clean_pass",
+      "gold": "pass",
+      "agent": "pass",
+      "match": true,
+      "latency": 1093
+    },
+    {
+      "unitId": "EVAL-0016",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 863
+    },
+    {
+      "unitId": "EVAL-0017",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 938
+    },
+    {
+      "unitId": "EVAL-0018",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 792
+    },
+    {
+      "unitId": "EVAL-0019",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 992
+    },
+    {
+      "unitId": "EVAL-0020",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1071
+    },
+    {
+      "unitId": "EVAL-0021",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1030
+    },
+    {
+      "unitId": "EVAL-0022",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 967
+    },
+    {
+      "unitId": "EVAL-0023",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1119
+    },
+    {
+      "unitId": "EVAL-0024",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1049
+    },
+    {
+      "unitId": "EVAL-0025",
+      "category": "damage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 989
+    },
+    {
+      "unitId": "EVAL-0026",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1146
+    },
+    {
+      "unitId": "EVAL-0027",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 954
+    },
+    {
+      "unitId": "EVAL-0028",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 776
+    },
+    {
+      "unitId": "EVAL-0029",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1012
+    },
+    {
+      "unitId": "EVAL-0030",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1106
+    },
+    {
+      "unitId": "EVAL-0031",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 842
+    },
+    {
+      "unitId": "EVAL-0032",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1081
+    },
+    {
+      "unitId": "EVAL-0033",
+      "category": "mismatch",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1080
+    },
+    {
+      "unitId": "EVAL-0034",
+      "category": "quantity_shortage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 889
+    },
+    {
+      "unitId": "EVAL-0035",
+      "category": "quantity_shortage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1062
+    },
+    {
+      "unitId": "EVAL-0036",
+      "category": "quantity_shortage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 762
+    },
+    {
+      "unitId": "EVAL-0037",
+      "category": "quantity_shortage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 851
+    },
+    {
+      "unitId": "EVAL-0038",
+      "category": "quantity_overage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1081
+    },
+    {
+      "unitId": "EVAL-0039",
+      "category": "quantity_overage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 930
+    },
+    {
+      "unitId": "EVAL-0040",
+      "category": "quantity_overage",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1022
+    },
+    {
+      "unitId": "EVAL-0041",
+      "category": "occluded_ambiguous",
+      "gold": "uncertain",
+      "agent": "uncertain",
+      "match": true,
+      "latency": 804
+    },
+    {
+      "unitId": "EVAL-0042",
+      "category": "occluded_ambiguous",
+      "gold": "uncertain",
+      "agent": "uncertain",
+      "match": true,
+      "latency": 1011
+    },
+    {
+      "unitId": "EVAL-0043",
+      "category": "occluded_ambiguous",
+      "gold": "uncertain",
+      "agent": "uncertain",
+      "match": true,
+      "latency": 951
+    },
+    {
+      "unitId": "EVAL-0044",
+      "category": "occluded_ambiguous",
+      "gold": "uncertain",
+      "agent": "uncertain",
+      "match": true,
+      "latency": 780
+    },
+    {
+      "unitId": "EVAL-0045",
+      "category": "occluded_ambiguous",
+      "gold": "uncertain",
+      "agent": "uncertain",
+      "match": true,
+      "latency": 948
+    },
+    {
+      "unitId": "EVAL-0046",
+      "category": "missing_components",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1129
+    },
+    {
+      "unitId": "EVAL-0047",
+      "category": "missing_components",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1139
+    },
+    {
+      "unitId": "EVAL-0048",
+      "category": "missing_components",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1001
+    },
+    {
+      "unitId": "EVAL-0049",
+      "category": "missing_components",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1136
+    },
+    {
+      "unitId": "EVAL-0050",
+      "category": "missing_components",
+      "gold": "exception",
+      "agent": "exception",
+      "match": true,
+      "latency": 1057
+    }
+  ]
+}

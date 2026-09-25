@@ -1,0 +1,202 @@
+[
+  {
+    "unitId": "EVAL-0001",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0002",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0003",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0004",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0005",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0006",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0007",
+    "verdict": "uncertain"
+  },
+  {
+    "unitId": "EVAL-0008",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0009",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0010",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0011",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0012",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0013",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0014",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0015",
+    "verdict": "pass"
+  },
+  {
+    "unitId": "EVAL-0016",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0017",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0018",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0019",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0020",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0021",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0022",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0023",
+    "verdict": "uncertain"
+  },
+  {
+    "unitId": "EVAL-0024",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0025",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0026",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0027",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0028",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0029",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0030",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0031",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0032",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0033",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0034",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0035",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0036",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0037",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0038",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0039",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0040",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0041",
+    "verdict": "uncertain"
+  },
+  {
+    "unitId": "EVAL-0042",
+    "verdict": "uncertain"
+  },
+  {
+    "unitId": "EVAL-0043",
+    "verdict": "uncertain"
+  },
+  {
+    "unitId": "EVAL-0044",
+    "verdict": "uncertain"
+  },
+  {
+    "unitId": "EVAL-0045",
+    "verdict": "uncertain"
+  },
+  {
+    "unitId": "EVAL-0046",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0047",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0048",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0049",
+    "verdict": "exception"
+  },
+  {
+    "unitId": "EVAL-0050",
+    "verdict": "exception"
+  }
+]
