@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RCV_Evidence_Record",
+  "description": "Canonical cross-pod evidence record specification for CUBE Buildathon Track 01 (Receiving Manager)",
+  "type": "object",
+  "required": [
+    "record_id",
+    "schema_version",
+    "organization_id",
+    "agent",
+    "subject",
+    "captured_at",
+    "images",
+    "checks",
+    "outcome",
+    "content_hash"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "description": "Unique identifier for this receiving inspection record (e.g. ins_...)"
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": ["rcv.v1"],
+      "description": "Interoperability schema contract version"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Tenant organization boundary (e.g. org_demo_alpha or org_demo_bravo)"
+    },
+    "agent": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "example": "DockProof" },
+        "version": { "type": "string", "example": "1.0.0" }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "required": ["unit_id", "sku"],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "description": "Universal join key shared across all 5 CUBE manager repositories"
+        },
+        "sku": { "type": "string", "example": "ELEC-SPK-001" },
+        "asin": { "type": "string" },
+        "po_number": { "type": "string" }
+      }
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "sha256", "role"],
+        "properties": {
+          "id": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "role": { "type": "string", "enum": ["overview", "label", "barcode", "damage_detail", "components"] }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["check_key", "verdict", "confidence"],
+        "properties": {
+          "check_key": {
+            "type": "string",
+            "enum": [
+              "identity",
+              "quantity",
+              "carton_count",
+              "units_per_carton",
+              "variant",
+              "carton_damage",
+              "unit_damage",
+              "components"
+            ]
+          },
+          "verdict": { "type": "string", "enum": ["pass", "fail", "uncertain"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "detail": { "type": "object" },
+          "model_version": { "type": "string" },
+          "latency_ms": { "type": "number" }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "required": ["decision", "decided_by", "decided_at"],
+      "properties": {
+        "decision": { "type": "string", "enum": ["pass", "exception", "uncertain"] },
+        "decided_by": { "type": "string", "enum": ["system", "human"] },
+        "decided_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["actor", "original", "new", "reason", "at"],
+        "properties": {
+          "actor": { "type": "string" },
+          "original": { "type": "string" },
+          "new": { "type": "string" },
+          "reason": { "type": "string" },
+          "at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Cryptographic SHA-256 integrity hash sealing the canonical inspection payload"
+    }
+  }
+}
