@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Filter, ChevronRight, CheckCircle2, XCircle, AlertCircle, Clock } from "lucide-react";
+import { Search, Filter, ChevronRight, CheckCircle2, XCircle, AlertTriangle, Clock, RefreshCw } from "lucide-react";
+import { LoadingIcon } from "@/components/ui/loading-icon";
 
 type Inspection = {
   id: string;
@@ -21,23 +22,24 @@ export default function InspectionsPage() {
   const [search, setSearch] = useState("");
   const [filterVerdict, setFilterVerdict] = useState<string>("all");
 
-  useEffect(() => {
-    const fetchInspections = async () => {
-      try {
-        const response = await fetch("/api/inspections");
-        if (response.ok) {
-          const data = await response.json();
-          setInspections(data.inspections || []);
-        } else {
-          setInspections([]);
-        }
-      } catch {
+  const fetchInspections = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/inspections");
+      if (response.ok) {
+        const data = await response.json();
+        setInspections(data.inspections || []);
+      } else {
         setInspections([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch {
+      setInspections([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchInspections();
   }, []);
 
@@ -57,138 +59,153 @@ export default function InspectionsPage() {
     switch (verdict) {
       case "pass":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Pass
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            PASS
           </span>
         );
       case "exception":
       case "fail":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
-            <XCircle className="w-3.5 h-3.5" />
-            Exception
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
+            <XCircle className="w-3.5 h-3.5 text-rose-600" />
+            EXCEPTION
           </span>
         );
       case "uncertain":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-            <AlertCircle className="w-3.5 h-3.5" />
-            Uncertain
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            UNCERTAIN
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
-            <Clock className="w-3.5 h-3.5" />
-            Pending
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            PENDING
           </span>
         );
     }
   };
 
   return (
-    <div className="flex flex-col h-full max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Inspections</h1>
-        <p className="text-sm text-slate-500 mt-1">Every inbound unit: eight checks against the purchase order.</p>
+    <div className="flex flex-col h-full max-w-7xl mx-auto space-y-6 animate-fade-in">
+      {/* Header Banner */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5 text-xs font-mono text-slate-500">
+            <span className="font-bold text-slate-900 tracking-wider">RCV · POD 01</span>
+            <span>/</span>
+            <span>INSPECTION LEDGER</span>
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Arrival Inspections</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Every inbound freight unit evaluated across eight arrival verification checks.
+          </p>
+        </div>
+
+        <button
+          onClick={fetchInspections}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors shadow-xs disabled:opacity-50 self-start sm:self-center"
+        >
+          {loading ? (
+            <LoadingIcon size="xs" color="indigo" />
+          ) : (
+            <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+          )}
+          <span>Refresh Ledger</span>
+        </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-slate-400" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-brand-600 focus:border-brand-600 sm:text-sm transition-colors"
+            className="block w-full pl-10 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl leading-5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-xs"
             placeholder="Search by Unit Code, SKU, Title, or PO..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Filter className="h-4 w-4 text-gray-400" />
+
+        <div className="relative shrink-0">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <Filter className="h-3.5 w-3.5 text-slate-400" />
           </div>
           <select
-            className="block w-full pl-10 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-brand-600 focus:border-brand-600 sm:text-sm rounded-md bg-white appearance-none"
+            className="block w-full sm:w-44 pl-9 pr-8 py-2 text-xs font-medium border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs appearance-none cursor-pointer"
             value={filterVerdict}
             onChange={(e) => setFilterVerdict(e.target.value)}
           >
             <option value="all">All Verdicts</option>
-            <option value="pass">Pass</option>
-            <option value="exception">Exception</option>
-            <option value="uncertain">Uncertain</option>
-            <option value="pending">Pending</option>
+            <option value="pass">Pass Only</option>
+            <option value="exception">Exception Only</option>
+            <option value="uncertain">Uncertain Only</option>
+            <option value="pending">Pending Only</option>
           </select>
         </div>
       </div>
 
-      <div className="bg-white shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg overflow-hidden">
+      {/* Inspections Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-300">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                  Unit Code
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  SKU / Title
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  PO Number
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  Verdict
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  Date
-                </th>
-                <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                  <span className="sr-only">View</span>
-                </th>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-100 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                <th scope="col" className="py-3 px-4">Unit Code</th>
+                <th scope="col" className="py-3 px-4">SKU / Product</th>
+                <th scope="col" className="py-3 px-4">PO Number</th>
+                <th scope="col" className="py-3 px-4">Arrival Verdict</th>
+                <th scope="col" className="py-3 px-4">Intake Date</th>
+                <th scope="col" className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
-                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-brand-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-                    <p className="mt-2 text-sm text-gray-500">Loading inspections...</p>
+                  <td colSpan={6} className="py-16 text-center">
+                    <LoadingIcon size="lg" color="indigo" label="Loading arrival inspections…" className="flex-col gap-3" />
                   </td>
                 </tr>
               ) : filteredInspections.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-gray-500">
-                    No inspections found.
+                  <td colSpan={6} className="py-16 text-center text-slate-400 space-y-1">
+                    <p className="font-semibold text-slate-700 text-sm">No inspections match filter</p>
+                    <p className="text-xs text-slate-400">Try adjusting your query or filter selection.</p>
                   </td>
                 </tr>
               ) : (
                 filteredInspections.map((inspection) => (
-                  <tr key={inspection.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                      <span className="font-mono">{inspection.unitCode}</span>
+                  <tr key={inspection.id} className="hover:bg-slate-50/70 transition-colors group">
+                    <td className="whitespace-nowrap py-3.5 px-4 font-mono font-bold text-slate-900">
+                      {inspection.unitCode}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      <div className="font-medium text-gray-900">{inspection.sku}</div>
-                      <div className="text-gray-500">{inspection.productTitle}</div>
+                    <td className="py-3.5 px-4 max-w-xs">
+                      <div className="font-semibold text-slate-900 truncate">{inspection.productTitle}</div>
+                      <div className="font-mono text-[10px] text-slate-500 mt-0.5">{inspection.sku}</div>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap py-3.5 px-4 font-semibold text-slate-700">
                       {inspection.poNumber}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap py-3.5 px-4">
                       {getVerdictBadge(inspection.overallVerdict)}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap py-3.5 px-4 font-mono text-[11px] text-slate-500">
                       {new Date(inspection.startedAt).toLocaleDateString()}
                     </td>
-                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                    <td className="whitespace-nowrap py-3.5 px-4 text-right">
                       <Link
                         href={`/inspections/${inspection.id}`}
-                        className="text-brand-600 hover:text-brand-900 inline-flex items-center gap-1"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors shadow-2xs"
                       >
-                        View <ChevronRight className="w-4 h-4" />
+                        <span>View</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </td>
                   </tr>
@@ -197,6 +214,13 @@ export default function InspectionsPage() {
             </tbody>
           </table>
         </div>
+
+        {!loading && filteredInspections.length > 0 && (
+          <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
+            <span>Showing {filteredInspections.length} inspection records</span>
+            <span className="font-mono">Tamper-evident verification</span>
+          </div>
+        )}
       </div>
     </div>
   );

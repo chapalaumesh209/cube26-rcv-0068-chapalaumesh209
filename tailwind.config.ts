@@ -34,6 +34,10 @@ const config: Config = {
         sans: ["Inter", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
+      boxShadow: {
+        'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+        '2xs': '0 1px 1px 0 rgba(0, 0, 0, 0.03)',
+      },
     },
   },
   plugins: [],

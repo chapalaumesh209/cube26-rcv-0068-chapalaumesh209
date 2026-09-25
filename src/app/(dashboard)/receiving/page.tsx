@@ -27,6 +27,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { ReceivingSopModal } from "@/components/receiving-sop-modal";
+import { LoadingIcon } from "@/components/ui/loading-icon";
 
 interface Inspection {
   id: string;
@@ -153,7 +154,11 @@ export default function ReceivingPage() {
             disabled={loading}
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${loading ? "animate-spin" : ""}`} />
+            {loading ? (
+              <LoadingIcon size="xs" color="indigo" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+            )}
             <span>Refresh</span>
           </button>
 
@@ -446,13 +451,11 @@ export default function ReceivingPage() {
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan={7} className="py-4 px-4">
-                      <div className="h-4 bg-slate-100 rounded w-full" />
-                    </td>
-                  </tr>
-                ))
+                <tr>
+                  <td colSpan={7} className="py-16 text-center">
+                    <LoadingIcon size="lg" color="indigo" label="Streaming inbound intake ledger…" className="flex-col gap-3" />
+                  </td>
+                </tr>
               ) : sorted.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-400 space-y-2">
@@ -466,7 +469,7 @@ export default function ReceivingPage() {
               ) : (
                 sorted.map((item) => {
                   const isPass = item.overallVerdict === "pass";
-                  const isException = item.overallVerdict === "exception" || item.overallVerdict === "fail";
+                  const isException = item.overallVerdict === "exception" || (item.overallVerdict as string) === "fail";
                   const isUncertain = item.overallVerdict === "uncertain";
 
                   return (

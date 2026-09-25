@@ -82,41 +82,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = allNavItems.filter((item) => item.roles.includes(currentRole));
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="min-h-screen flex bg-[#F8FAFC]">
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-40 h-screen bg-slate-900 text-white flex flex-col transition-all duration-300 ${
+        className={`fixed lg:sticky top-0 left-0 z-40 h-screen bg-white border-r border-slate-200/90 text-slate-800 flex flex-col transition-all duration-300 shadow-[1px_0_4px_rgba(0,0,0,0.02)] ${
           collapsed ? "w-[68px]" : "w-64"
         } ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        <div className={`flex items-center gap-3 px-4 h-16 border-b border-slate-800 ${collapsed ? "justify-center" : ""}`}>
-          <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shrink-0">
+        <div className={`flex items-center gap-3 px-4 h-16 border-b border-slate-100 ${collapsed ? "justify-center" : ""}`}>
+          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0 text-white shadow-sm shadow-indigo-600/20">
             <Shield className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
             <div>
-              <h1 className="font-bold text-sm tracking-tight text-white">DockProof</h1>
-              <p className="text-[10px] text-slate-400">Receiving Manager</p>
+              <h1 className="font-bold text-sm tracking-tight text-slate-900">DockProof</h1>
+              <p className="text-[10px] text-slate-500 font-medium">Receiving Manager</p>
             </div>
           )}
         </div>
 
         {!collapsed && user && (
-          <div className="mx-3 mt-3 p-3 bg-slate-800/80 rounded-xl border border-slate-700/60">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Site</p>
-            <p className="text-xs font-bold text-slate-200 mt-0.5">{orgLabel}</p>
-            <div className="mt-2 pt-2 border-t border-slate-700/50 flex items-center gap-1.5">
+          <div className="mx-3 mt-3 p-3 bg-slate-50/90 rounded-xl border border-slate-200/80">
+            <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500">Facility / Site</p>
+            <p className="text-xs font-bold text-slate-900 mt-0.5">{orgLabel}</p>
+            <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center gap-1.5">
               <span
                 className={`w-2 h-2 rounded-full ${
                   currentRole === "admin"
-                    ? "bg-indigo-400"
+                    ? "bg-indigo-500"
                     : currentRole === "reviewer"
-                    ? "bg-amber-400"
+                    ? "bg-amber-500"
                     : currentRole === "evaluator"
-                    ? "bg-purple-400"
-                    : "bg-emerald-400"
+                    ? "bg-purple-500"
+                    : "bg-emerald-500"
                 }`}
               />
-              <span className="text-xs font-medium text-slate-300">{roleLabel}</span>
+              <span className="text-xs font-semibold text-slate-700">{roleLabel}</span>
             </div>
           </div>
         )}
@@ -129,15 +129,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                className={`flex items-center px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 group ${
                   isActive
-                    ? "text-white bg-brand-600/20 border-l-2 border-brand-400"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    ? "text-indigo-700 bg-indigo-50/90 border-l-2 border-indigo-600 font-bold shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 } ${collapsed ? "justify-center" : "gap-3"}`}
                 title={collapsed ? item.label : undefined}
               >
-                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-brand-400" : "group-hover:text-slate-200"}`} />
-                {!collapsed && <span className="text-xs font-medium">{item.label}</span>}
+                <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"}`} />
+                {!collapsed && <span>{item.label}</span>}
               </Link>
             );
           })}
@@ -146,28 +146,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="hidden lg:block px-2 pb-2">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
           >
             <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? "rotate-180" : ""}`} />
-            {!collapsed && <span>Collapse</span>}
+            {!collapsed && <span>Collapse Sidebar</span>}
           </button>
         </div>
 
-        <div className={`px-2 pb-3 border-t border-slate-800 pt-3 ${collapsed ? "flex flex-col items-center" : ""}`}>
+        <div className={`px-2 pb-3 border-t border-slate-100 pt-3 bg-slate-50/40 ${collapsed ? "flex flex-col items-center" : ""}`}>
           {!collapsed && user && (
             <div className="flex items-center gap-2.5 px-3 py-2 mb-1">
-              <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-xs">
                 {(user.fullName || user.email || "U").charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-200 truncate">{user.fullName || user.email}</p>
-                <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+                <p className="text-xs font-semibold text-slate-900 truncate">{user.fullName || user.email}</p>
+                <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
               </div>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors ${collapsed ? "justify-center" : ""}`}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors ${collapsed ? "justify-center" : ""}`}
           >
             <LogOut className="w-4 h-4" />
             {!collapsed && <span>Sign out</span>}
@@ -176,7 +176,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setMobileMenuOpen(false)} />
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 lg:hidden" onClick={() => setMobileMenuOpen(false)} />
       )}
 
       <div className="flex-1 flex flex-col min-w-0">

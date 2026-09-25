@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import { ShieldCheck, RefreshCw } from 'lucide-react';
+import { LoadingIcon } from '@/components/ui/loading-icon';
 
 export default function EvaluationPage() {
   const [loading, setLoading] = useState(false);
@@ -55,19 +56,29 @@ export default function EvaluationPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Receiving quality</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Held-out units scored on the eight arrival checks. Rules own the verdict; observation never stamps PASS on a failed check.
+          <div className="flex items-center gap-2 mb-1.5 text-xs font-mono text-slate-500">
+            <span className="font-bold text-slate-900 tracking-wider">RCV · POD 01</span>
+            <span>/</span>
+            <span>HELD-OUT BENCHMARK SUITE</span>
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Receiving Quality & Accuracy</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            50 held-out arrival units scored across the eight checks. Deterministic rules govern commercial verdicts.
           </p>
         </div>
         <button
           onClick={fetchData}
-          className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50"
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition-colors shadow-xs disabled:opacity-50 self-start sm:self-center"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          {loading ? (
+            <LoadingIcon size="xs" color="indigo" />
+          ) : (
+            <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+          )}
+          <span>Refresh Benchmark</span>
         </button>
       </div>
 

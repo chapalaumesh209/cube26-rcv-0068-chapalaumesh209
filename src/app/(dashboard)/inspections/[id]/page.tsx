@@ -31,6 +31,7 @@ import {
   Scale,
 } from "lucide-react";
 import Link from "next/link";
+import { LoadingIcon } from "@/components/ui/loading-icon";
 
 // Types
 type Verdict = "pass" | "fail" | "exception" | "uncertain" | "pending";
@@ -235,12 +236,15 @@ export default function InspectionDetailPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-10 bg-slate-200 rounded w-1/4" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="h-96 bg-slate-200 rounded-xl" />
-          <div className="h-96 bg-slate-200 rounded-xl" />
-          <div className="h-96 bg-slate-200 rounded-xl" />
+      <div className="space-y-6 animate-fade-in">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-12 shadow-sm flex flex-col items-center justify-center text-center">
+          <LoadingIcon size="xl" color="indigo" label="Loading arrival inspection record…" className="flex-col gap-4" />
+          <p className="text-xs text-slate-400 mt-2 font-mono">Retrieving sealed observations and PO line items</p>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
+          <div className="h-80 bg-white rounded-2xl border border-slate-200" />
+          <div className="h-80 bg-white rounded-2xl border border-slate-200" />
+          <div className="h-80 bg-white rounded-2xl border border-slate-200" />
         </div>
       </div>
     );
@@ -306,20 +310,32 @@ export default function InspectionDetailPage() {
             <button
               onClick={handleRunAnalysis}
               disabled={analyzing}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition-colors shadow disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all shadow-xs disabled:opacity-50 active:scale-[0.98]"
             >
-              <Play className="w-4 h-4" />
-              {analyzing ? "Inspecting…" : "Run inspection"}
+              {analyzing ? (
+                <LoadingIcon size="xs" color="white" label="Inspecting…" />
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  <span>Run inspection</span>
+                </>
+              )}
             </button>
           ) : (
             <button
               onClick={handleRunAnalysis}
               disabled={analyzing}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition-all shadow-xs disabled:opacity-50 active:scale-[0.98]"
               title="Re-run the eight receiving checks on the current photographs"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${analyzing ? "animate-spin" : ""}`} />
-              Re-analyze
+              {analyzing ? (
+                <LoadingIcon size="xs" color="slate" label="Re-analyzing…" />
+              ) : (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Re-analyze</span>
+                </>
+              )}
             </button>
           )}
 
@@ -786,7 +802,7 @@ export default function InspectionDetailPage() {
 
                 <div className="pt-2 flex justify-end">
                   <Dialog.Close asChild>
-                    <button className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold">
+                    <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors">
                       Close Breakdown
                     </button>
                   </Dialog.Close>
@@ -863,9 +879,13 @@ export default function InspectionDetailPage() {
                 <button
                   type="submit"
                   disabled={submittingOverride || !overrideReason}
-                  className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {submittingOverride ? "Recording..." : "Apply Binding Override"}
+                  {submittingOverride ? (
+                    <LoadingIcon size="xs" color="white" label="Recording…" />
+                  ) : (
+                    "Apply Binding Override"
+                  )}
                 </button>
               </div>
             </form>

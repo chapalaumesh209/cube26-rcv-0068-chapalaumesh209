@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, UploadCloud, File, CheckCircle2, AlertTriangle, Shield } from "lucide-react";
+import { LoadingIcon } from "@/components/ui/loading-icon";
 
 export default function ImportShipmentsPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -129,9 +130,13 @@ export default function ImportShipmentsPage() {
               <button
                 onClick={handleImport}
                 disabled={importing}
-                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors shadow"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition-all shadow-xs flex items-center gap-1.5"
               >
-                {importing ? "Processing Manifest..." : "Ingest & Seed Shipments"}
+                {importing ? (
+                  <LoadingIcon size="xs" color="white" label="Processing Manifest…" />
+                ) : (
+                  "Ingest & Seed Shipments"
+                )}
               </button>
             </div>
           )}

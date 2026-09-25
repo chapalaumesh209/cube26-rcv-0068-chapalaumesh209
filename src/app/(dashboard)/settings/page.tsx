@@ -13,6 +13,7 @@ import {
   Sliders,
 } from "lucide-react";
 import { orgDisplayName } from "@/lib/public-labels";
+import { LoadingIcon } from "@/components/ui/loading-icon";
 
 interface AuditEvent {
   id: string;
@@ -290,9 +291,13 @@ export default function SettingsPage() {
                         setSavingSettings(false);
                       }
                     }}
-                    className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-xs disabled:opacity-50 flex items-center gap-1.5"
                   >
-                    {savingSettings ? "Saving..." : "Save policy"}
+                    {savingSettings ? (
+                      <LoadingIcon size="xs" color="white" label="Saving…" />
+                    ) : (
+                      "Save policy"
+                    )}
                   </button>
                 </div>
               )}
