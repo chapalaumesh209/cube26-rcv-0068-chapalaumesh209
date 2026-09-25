@@ -1,81 +1,123 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Search, Package, Plus } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { Search, Package, Plus, RefreshCw, Layers } from 'lucide-react';
 
 export default function CatalogPage() {
-  const [search, setSearch] = useState('')
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
-  const products = [
-    { sku: 'SKU-APP-1', asin: 'B08N5M7S6K', title: 'MacBook Air M1', color: 'Space Gray', variant: '256GB', components: ['Laptop', 'Charger', 'Cable'] },
-    { sku: 'SKU-APP-2', asin: 'B09JQL8KP9', title: 'AirPods Pro 2', color: 'White', variant: 'Standard', components: ['Earbuds', 'Case', 'Tips', 'Cable'] },
-    { sku: 'SKU-SON-1', asin: 'B08F7PTF53', title: 'Sony WH-1000XM4', color: 'Black', variant: 'Noise Cancelling', components: ['Headphones', 'Case', 'Cable', 'Adapter'] },
-  ]
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/catalog${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data.products || []);
+      }
+    } catch {
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filtered = products.filter(p => p.sku.toLowerCase().includes(search.toLowerCase()) || p.title.toLowerCase().includes(search.toLowerCase()))
+  useEffect(() => {
+    fetchProducts();
+  }, [search]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Product Catalog</h1>
-          <p className="text-sm text-gray-500">Manage products, variants, and expected components.</p>
+          <h1 className="text-xl font-bold text-slate-900">Product Catalogue</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Master SKU registry and Bill of Materials specs</p>
         </div>
-        <button className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90 h-9 px-4 py-2">
-          <Plus className="w-4 h-4 mr-2" /> Add Product
+        <button
+          onClick={fetchProducts}
+          className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition-colors"
+          title="Refresh catalogue"
+        >
+          <RefreshCw className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
-        <Search className="w-5 h-5 text-gray-400 ml-2" />
-        <input 
-          type="text" 
-          placeholder="Search by SKU or Title..." 
-          className="flex-1 outline-none text-sm p-1"
+      <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm">
+        <Search className="w-4 h-4 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Search by SKU, Product Title, or Variant..."
+          className="flex-1 outline-none text-xs bg-transparent text-slate-800 placeholder-slate-400"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-500 bg-gray-50 uppercase">
-              <tr>
-                <th className="px-6 py-3">SKU</th>
-                <th className="px-6 py-3">ASIN</th>
-                <th className="px-6 py-3">Title</th>
-                <th className="px-6 py-3">Color / Variant</th>
-                <th className="px-6 py-3">Expected Components</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filtered.map(product => (
-                <tr key={product.sku} className="hover:bg-gray-50 cursor-pointer transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-2">
-                    <Package className="w-4 h-4 text-gray-400" />
-                    {product.sku}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{product.asin}</td>
-                  <td className="px-6 py-4 font-medium text-gray-900">{product.title}</td>
-                  <td className="px-6 py-4 text-gray-500">
-                    {product.color} <span className="mx-1">•</span> {product.variant}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {product.components.map(comp => (
-                        <span key={comp} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded border border-blue-100">
-                          {comp}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {loading ? (
+        <div className="space-y-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-14 bg-white border border-slate-200 animate-pulse rounded-xl" />
+          ))}
         </div>
-      </div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-xl border border-slate-200 shadow-sm">
+          <Package className="mx-auto h-8 w-8 text-slate-400 mb-2" />
+          <p className="text-sm font-semibold text-slate-700">No products found</p>
+          <p className="text-xs text-slate-400 mt-0.5">Try adjusting your search query</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="text-[11px] text-slate-500 bg-slate-50 border-b border-slate-200 font-semibold uppercase">
+                <tr>
+                  <th className="px-4 py-3">SKU</th>
+                  <th className="px-4 py-3">Product Title</th>
+                  <th className="px-4 py-3">Colour / Variant</th>
+                  <th className="px-4 py-3">Units / Carton</th>
+                  <th className="px-4 py-3">Expected Components</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {products.map((p) => {
+                  let components: string[] = [];
+                  try {
+                    if (p.componentsJson) components = JSON.parse(p.componentsJson);
+                  } catch {}
+
+                  return (
+                    <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="px-4 py-3 font-mono font-medium text-brand-600">{p.sku}</td>
+                      <td className="px-4 py-3 font-medium text-slate-800">{p.title || p.name || 'Standard Unit'}</td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {p.colour || 'Standard'} {p.variant ? `· ${p.variant}` : ''}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-slate-700">{p.unitsPerCarton || 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {components.length > 0 ? (
+                            components.map((c, idx) => (
+                              <span
+                                key={idx}
+                                className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium"
+                              >
+                                {c}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">Standard Assembly</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

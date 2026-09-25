@@ -2,14 +2,59 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Shield, Eye, Loader2 } from "lucide-react";
+import { Shield, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 
-const DEMO_ACCOUNTS = [
-  { email: "admin@alpha.com", role: "Admin", org: "Alpha Corp", icon: "🔑" },
-  { email: "operator@alpha.com", role: "Operator", org: "Alpha Corp", icon: "📦" },
-  { email: "lead@alpha.com", role: "Reviewer", org: "Alpha Corp", icon: "🔍" },
-  { email: "operator@bravo.com", role: "Operator", org: "Bravo Inc", icon: "📦" },
-  { email: "evaluator@alpha.com", role: "Evaluator", org: "Alpha Corp", icon: "📊" },
+const ROLE_ACCOUNTS = [
+  {
+    email: "operator@alpha.com",
+    role: "Operator",
+    title: "Dock Operator",
+    org: "Alpha Corp",
+    desc: "Intake, Barcode Scan & VLM Camera",
+    color: "from-blue-600 to-indigo-600",
+    badge: "Intake",
+    target: "/receiving",
+  },
+  {
+    email: "lead@alpha.com",
+    role: "Reviewer",
+    title: "Lead Reviewer",
+    org: "Alpha Corp",
+    desc: "Exceptions Triage & Commercial Sign-off",
+    color: "from-amber-600 to-orange-600",
+    badge: "Triage",
+    target: "/review",
+  },
+  {
+    email: "admin@alpha.com",
+    role: "Admin",
+    title: "Administrator",
+    org: "Alpha Corp",
+    desc: "Manifests, VLM Engine & Access Control",
+    color: "from-slate-800 to-slate-950",
+    badge: "Config",
+    target: "/shipments",
+  },
+  {
+    email: "evaluator@alpha.com",
+    role: "Evaluator",
+    title: "Benchmark Evaluator",
+    org: "Alpha Corp",
+    desc: "50-Unit Held-Out Suite & Kappa Score",
+    color: "from-purple-600 to-indigo-700",
+    badge: "Metrics",
+    target: "/evaluation",
+  },
+  {
+    email: "operator@bravo.com",
+    role: "Operator",
+    title: "Tenant Bravo",
+    org: "Bravo Inc",
+    desc: "Cross-Tenant Data Boundary Isolation",
+    color: "from-emerald-600 to-teal-700",
+    badge: "Isolated",
+    target: "/receiving",
+  },
 ];
 
 export default function LoginPage() {
@@ -17,14 +62,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingEmail, setLoadingEmail] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async (loginEmail?: string) => {
+  const handleLogin = async (targetEmail?: string, customTarget?: string) => {
     setError("");
-    setLoading(true);
-    const useEmail = loginEmail || email;
-    const usePassword = loginEmail ? "demo123" : password;
+    const useEmail = targetEmail || email;
+    const usePassword = targetEmail ? "demo123" : password;
+    setLoadingEmail(useEmail);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -37,158 +82,138 @@ export default function LoginPage() {
 
       if (!res.ok) {
         setError(data.error || "Login failed");
-        setLoading(false);
+        setLoadingEmail(null);
         return;
       }
 
-      router.push("/receiving");
+      // Route to role-specific destination
+      let destination = customTarget;
+      if (!destination) {
+        const role = data.user?.role;
+        if (role === "reviewer") destination = "/review";
+        else if (role === "evaluator") destination = "/evaluation";
+        else if (role === "admin") destination = "/shipments";
+        else destination = "/receiving";
+      }
+
+      router.push(destination);
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
-      setLoading(false);
+      setError("Network connection error. Try again.");
+      setLoadingEmail(null);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-brand-500 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-500 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
-              <Shield className="w-6 h-6" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight">DockProof</span>
-          </div>
-          <p className="text-slate-400 text-sm ml-[52px]">Evidence-First AI Receiving Manager</p>
-        </div>
-
-        <div className="relative z-10 space-y-8">
-          <blockquote className="text-2xl font-light leading-relaxed text-slate-300 border-l-2 border-brand-500 pl-6">
-            AI observes.<br />
-            Rules decide.<br />
-            Evidence proves.<br />
-            <span className="text-brand-400">Uncertainty is a valid result.</span>
-          </blockquote>
-
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { label: "8 Required Checks", desc: "Identity to components" },
-              { label: "Evidence-First", desc: "Every decision traceable" },
-              { label: "Deterministic", desc: "Rules own the verdict" },
-              { label: "Fail-Open", desc: "Never blocks the operator" },
-            ].map((item) => (
-              <div key={item.label} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                <p className="text-sm font-semibold text-white">{item.label}</p>
-                <p className="text-xs text-slate-400 mt-1">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative z-10 text-xs text-slate-500">
-          CUBE Buildathon · Round 2 · Track 01: Receiving Manager
-        </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-6 text-slate-100">
+      {/* Background Subtle Gradient Glow */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand-500 rounded-full blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600 rounded-full blur-[140px]" />
       </div>
 
-      {/* Right panel - Login form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center lg:text-left">
-            <div className="flex items-center gap-3 justify-center lg:justify-start mb-4 lg:hidden">
-              <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold tracking-tight text-slate-900">DockProof</span>
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
-            <p className="text-slate-500 mt-1">Sign in to access the receiving manager</p>
+      <div className="w-full max-w-4xl relative z-10 space-y-6">
+        {/* Brand Header */}
+        <div className="text-center space-y-1">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold text-brand-400">
+            <Shield className="w-3.5 h-3.5 text-brand-500" />
+            DockProof · Track 01 RCV
           </div>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">AI Receiving Manager</h1>
+          <p className="text-xs text-slate-400">Select a role to enter its specialized workspace</p>
+        </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 flex items-center gap-2">
-              <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              {error}
-            </div>
-          )}
+        {error && (
+          <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs rounded-xl text-center max-w-md mx-auto">
+            {error}
+          </div>
+        )}
 
-          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+        {/* 1-Click Role-Based Entry Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {ROLE_ACCOUNTS.map((acc) => {
+            const isLoading = loadingEmail === acc.email;
+            return (
+              <button
+                key={acc.email}
+                onClick={() => handleLogin(acc.email, acc.target)}
+                disabled={Boolean(loadingEmail)}
+                className="group relative p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-brand-500/50 hover:bg-slate-850 transition-all text-left flex flex-col justify-between shadow-lg disabled:opacity-50"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+                      {acc.badge}
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-500">{acc.org}</span>
+                  </div>
+                  <h3 className="font-bold text-slate-100 text-sm group-hover:text-brand-300 transition-colors">
+                    {acc.title}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                    {acc.desc}
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 group-hover:text-white">
+                  <span className="font-mono text-[11px] truncate max-w-[170px]">{acc.email}</span>
+                  {isLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-400" />
+                  ) : (
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Manual Credentials Accordion / Input */}
+        <div className="max-w-md mx-auto bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 space-y-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+            className="space-y-3"
+          >
+            <div className="flex gap-2">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-white"
                 placeholder="operator@alpha.com"
-                required
+                className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 font-mono"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
-              <div className="relative">
+              <div className="relative w-36 shrink-0">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-white pr-10"
-                  placeholder="••••••"
-                  required
+                  placeholder="Password"
+                  className="w-full px-3 py-2 pr-7 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
                 >
-                  <Eye className="w-4 h-4" />
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>
+
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-brand-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={Boolean(loadingEmail) || !email || !password}
+              className="w-full py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
             >
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</> : "Sign in"}
+              {loadingEmail === email ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Sign In"}
             </button>
           </form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-slate-50 text-slate-400 uppercase tracking-wider">Demo Accounts</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {DEMO_ACCOUNTS.map((account) => (
-              <button
-                key={account.email}
-                onClick={() => handleLogin(account.email)}
-                disabled={loading}
-                className="w-full flex items-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm hover:border-brand-300 hover:bg-brand-50/50 transition-all group disabled:opacity-50"
-              >
-                <span className="text-lg">{account.icon}</span>
-                <div className="text-left flex-1">
-                  <p className="font-medium text-slate-700 group-hover:text-brand-700">{account.email}</p>
-                  <p className="text-xs text-slate-400">{account.role} · {account.org}</p>
-                </div>
-                <span className="text-xs text-slate-300 group-hover:text-brand-400">→</span>
-              </button>
-            ))}
-          </div>
-
-          <p className="text-xs text-center text-slate-400">
-            All demo accounts use password: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">demo123</code>
+          <p className="text-[10px] text-center text-slate-500">
+            Pre-seeded password for all accounts: <code className="text-slate-400 font-mono">demo123</code>
           </p>
         </div>
       </div>

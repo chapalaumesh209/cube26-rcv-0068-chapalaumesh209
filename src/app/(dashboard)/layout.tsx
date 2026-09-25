@@ -75,8 +75,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         body: JSON.stringify({ email, password: "demo123" }),
       });
       if (res.ok) {
+        const data = await res.json();
         setRoleSwitcherOpen(false);
         fetchCurrentUser();
+        const role = data.user?.role;
+        if (role === "reviewer") router.push("/review");
+        else if (role === "evaluator") router.push("/evaluation");
+        else if (role === "admin") router.push("/shipments");
+        else router.push("/receiving");
         router.refresh();
       }
     } finally {
@@ -88,78 +94,67 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const orgLabel = user?.orgId === "org_demo_alpha" ? "Alpha Corp" : user?.orgId === "org_demo_bravo" ? "Bravo Inc" : user?.orgId || "";
   const roleLabel = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
 
-  // Role-customized navigation structure
-  const navItems = [
+  // Role-customized navigation structure - minimal text, role-specific
+  const allNavItems = [
     {
       href: "/receiving",
       label: "Receiving",
       icon: Package,
-      badge: currentRole === "operator" ? "Primary" : null,
-      badgeColor: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-      description: "Dock intake & KPI strip",
-      roles: ["operator", "reviewer", "admin", "evaluator"],
+      badge: currentRole === "operator" ? "Active" : null,
+      roles: ["operator", "admin"],
     },
     {
       href: "/shipments",
       label: "Shipments",
       icon: ClipboardList,
       badge: null,
-      description: "Inbound manifests",
-      roles: ["operator", "reviewer", "admin", "evaluator"],
+      roles: ["operator", "admin"],
     },
     {
       href: "/inspections",
       label: "Inspections",
       icon: Search,
       badge: null,
-      description: "Unit inspection records",
       roles: ["operator", "reviewer", "admin", "evaluator"],
     },
     {
       href: "/review",
       label: "Review Queue",
       icon: AlertTriangle,
-      badge: currentRole === "reviewer" ? "Priority" : "Triage",
-      badgeColor: currentRole === "reviewer" ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-slate-700 text-slate-400 border-slate-600",
-      description: "Exception adjudication",
-      roles: ["reviewer", "admin", "operator", "evaluator"],
+      badge: currentRole === "reviewer" ? "Triage" : null,
+      roles: ["reviewer", "admin"],
     },
     {
       href: "/evidence",
-      label: "Evidence",
+      label: "Evidence Vault",
       icon: FileText,
       badge: null,
-      description: "rcv.v1 contracts",
-      roles: ["operator", "reviewer", "admin", "evaluator"],
+      roles: ["reviewer", "evaluator", "admin"],
     },
     {
       href: "/evaluation",
-      label: "Evaluation",
+      label: "Evaluation Suite",
       icon: BarChart3,
-      badge: currentRole === "evaluator" ? "Primary" : "50 Units",
-      badgeColor: currentRole === "evaluator" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-slate-700 text-slate-400 border-slate-600",
-      description: "Benchmark & Cohen's Kappa",
-      roles: ["evaluator", "admin", "reviewer"],
+      badge: currentRole === "evaluator" ? "50 Units" : null,
+      roles: ["evaluator", "admin"],
     },
     {
       href: "/catalog",
       label: "Catalogue",
       icon: BookOpen,
-      badge: currentRole === "admin" ? "Manage" : "View",
-      badgeColor: currentRole === "admin" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : "bg-slate-700 text-slate-400 border-slate-600",
-      description: "SKUs & BOM specs",
-      roles: ["admin", "reviewer", "operator", "evaluator"],
+      badge: null,
+      roles: ["admin", "reviewer"],
     },
     {
       href: "/settings",
-      label: "Settings",
+      label: "Settings & VLM",
       icon: Settings,
-      badge: currentRole === "admin" ? "Admin" : "Restricted",
-      badgeColor: currentRole === "admin" ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/30" : "bg-rose-500/20 text-rose-300 border-rose-500/30",
-      description: currentRole === "admin" ? "Users & policies" : "Permissions matrix",
-      roles: ["admin", "reviewer", "operator", "evaluator"],
+      badge: currentRole === "admin" ? "Admin" : null,
+      roles: ["admin"],
     },
   ];
+
+  const navItems = allNavItems.filter((item) => item.roles.includes(currentRole));
 
   return (
     <div className="min-h-screen flex bg-slate-50">
@@ -226,27 +221,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     ? "text-white bg-brand-600/20 border-l-2 border-brand-400 ml-0"
                     : "text-slate-400 hover:text-white hover:bg-slate-800"
                 } ${collapsed ? "justify-center" : ""}`}
-                title={collapsed ? `${item.label} (${item.description})` : undefined}
+                title={collapsed ? item.label : undefined}
               >
                 <div className="flex items-center gap-3">
                   <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-brand-400" : "group-hover:text-slate-200"}`} />
                   {!collapsed && (
-                    <div className="flex flex-col">
-                      <span className="leading-tight flex items-center gap-1.5">
-                        {item.label}
-                        {isRestrictedForUser && (
-                          <Lock className="w-3 h-3 text-slate-500" />
-                        )}
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-normal leading-tight">
-                        {item.description}
-                      </span>
-                    </div>
+                    <span className="leading-tight font-medium text-xs">
+                      {item.label}
+                    </span>
                   )}
                 </div>
 
                 {!collapsed && item.badge && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${item.badgeColor || "bg-slate-800 text-slate-400 border-slate-700"}`}>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded border font-medium bg-brand-900/60 text-brand-300 border-brand-700/50">
                     {item.badge}
                   </span>
                 )}
@@ -307,24 +294,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-800 capitalize">
-                  {pathname.split("/").filter(Boolean)[0] || "Receiving"}
-                </h2>
-                {pathname.includes("/review") && currentRole !== "reviewer" && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                    Reviewer Action Hub
-                  </span>
-                )}
-                {pathname.includes("/evaluation") && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">
-                    <Sparkles className="w-3 h-3" /> Evaluator Benchmark Suite
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-500 hidden sm:block">
-                CUBE Track 01 · Inbound Evidence-First Receiving Verification
-              </p>
+              <h2 className="text-base font-bold text-slate-900 capitalize leading-tight">
+                {pathname.split("/").filter(Boolean)[0] || "Receiving"}
+              </h2>
             </div>
           </div>
 
@@ -335,10 +307,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <button
                 onClick={() => setRoleSwitcherOpen(!roleSwitcherOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 transition-colors shadow-sm"
-                title="Switch credentials to test role-specific features"
               >
                 <UserCheck className="w-3.5 h-3.5 text-brand-600" />
-                <span className="hidden md:inline text-slate-500">Role:</span>
                 <span className="font-semibold text-slate-900">{roleLabel}</span>
                 <span className="text-[10px] text-slate-400 font-mono">({orgLabel})</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${roleSwitcherOpen ? "rotate-180" : ""}`} />
@@ -346,9 +316,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {roleSwitcherOpen && (
                 <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-50 animate-slide-in">
-                  <div className="px-3 py-2 border-b border-slate-100">
-                    <p className="text-xs font-bold text-slate-800">Quick Role Switcher</p>
-                    <p className="text-[11px] text-slate-500">Test how DockProof adapts features for each credential role:</p>
+                  <div className="px-3 py-1.5 border-b border-slate-100">
+                    <p className="text-xs font-bold text-slate-800">Switch Role</p>
                   </div>
                   <div className="space-y-1 py-1">
                     {DEMO_USERS.map((demo) => {
@@ -371,17 +340,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 {demo.role}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-400">{demo.label} · {demo.email}</span>
+                            <span className="text-[10px] text-slate-400">{demo.label}</span>
                           </div>
                           {isCurrent && <span className="text-xs text-brand-600 font-bold">Active</span>}
                         </button>
                       );
                     })}
-                  </div>
-                  <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
-                    <p className="text-[10px] text-slate-500">
-                      Enforces strict tenant isolation and role permissions across all tabs and actions.
-                    </p>
                   </div>
                 </div>
               )}
