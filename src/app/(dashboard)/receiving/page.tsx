@@ -121,13 +121,14 @@ export default function ReceivingPage() {
       {/* 1. Station Header Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-brand-50 text-brand-700 border border-brand-200">
-              Pod 01 · Inbound Intake Feed
-            </span>
-            <span className="text-xs text-slate-400">·</span>
-            <span className="text-xs text-slate-500 font-mono">
-              Bay 4 Active {lastUpdated ? `(Synced ${lastUpdated})` : ""}
+          <div className="flex items-center gap-2 mb-2 text-xs font-mono text-slate-500">
+            <span className="font-bold text-slate-900 tracking-wider">POD 01</span>
+            <span>/</span>
+            <span className="text-slate-600">INBOUND INTAKE FEED</span>
+            <span>/</span>
+            <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              BAY 04 ACTIVE {lastUpdated ? `· ${lastUpdated}` : ""}
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -165,6 +166,34 @@ export default function ReceivingPage() {
           </Link>
         </div>
       </div>
+
+      {/* Throughput & Health Distribution Bar */}
+      {stats.total > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono text-slate-600">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>Verified: <strong className="text-slate-900 tabular-nums">{stats.pass}</strong> ({Math.round((stats.pass / stats.total) * 100)}%)</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+                <span>Defects/Shortage: <strong className="text-slate-900 tabular-nums">{stats.exception}</strong> ({Math.round((stats.exception / stats.total) * 100)}%)</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>Under Review: <strong className="text-slate-900 tabular-nums">{stats.uncertain}</strong> ({Math.round((stats.uncertain / stats.total) * 100)}%)</span>
+              </span>
+            </div>
+            <span className="text-slate-400 text-[11px]">Total: {stats.total} units catalogued</span>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+            <div style={{ width: `${(stats.pass / stats.total) * 100}%` }} className="bg-emerald-500 h-full transition-all duration-300" />
+            <div style={{ width: `${(stats.exception / stats.total) * 100}%` }} className="bg-rose-500 h-full transition-all duration-300" />
+            <div style={{ width: `${(stats.uncertain / stats.total) * 100}%` }} className="bg-amber-500 h-full transition-all duration-300" />
+          </div>
+        </div>
+      )}
 
       {/* 2. Elevated KPI Metrics Ribbon */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

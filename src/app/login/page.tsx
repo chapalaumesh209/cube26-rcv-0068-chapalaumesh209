@@ -24,45 +24,45 @@ const STATIONS = [
     role: "operator",
     email: "operator@alpha.com",
     title: "Dock Intake Operator",
-    station: "Bay 4 Intake Station",
-    desc: "Photograph arrivals, verify SKU & count, and run single-pass inspection at the bay.",
+    station: "Bay 4 Intake Line",
+    duty: "Photograph physical freight, match PO lines, and execute single-pass arrival inspection.",
     target: "/receiving",
     icon: Package,
-    color: "emerald",
-    badge: "Operational Intake",
+    accent: "emerald",
+    statusText: "Camera Intake Ready",
   },
   {
     role: "reviewer",
     email: "lead@alpha.com",
     title: "Lead Reviewer",
     station: "Discrepancy Triage Desk",
-    desc: "Adjudicate transit defects, short-shipments, and occluded stock with binding audit trails.",
+    duty: "Adjudicate crushed packaging, quantity shortages, and occluded stock with binding audit notes.",
     target: "/review",
     icon: AlertTriangle,
-    color: "amber",
-    badge: "Exception Review",
+    accent: "amber",
+    statusText: "Review Queue Active",
   },
   {
     role: "admin",
     email: "admin@alpha.com",
     title: "Site Administrator",
-    station: "Operations & Policy Desk",
-    desc: "Import purchase order manifests, manage catalogue BOM, and configure access policies.",
+    station: "Operations & Policy Console",
+    duty: "Import PO manifests, configure tenant isolation policies, and manage catalogue BOM specs.",
     target: "/shipments",
     icon: ClipboardList,
-    color: "indigo",
-    badge: "Manifests & Policy",
+    accent: "indigo",
+    statusText: "Multi-Tenant Policy",
   },
   {
     role: "evaluator",
     email: "evaluator@alpha.com",
     title: "Quality Assurance Lead",
-    station: "Quality & Compliance Lab",
-    desc: "Score held-out 50-unit benchmark suite, Cohen's kappa agreement, and error rates.",
+    station: "Held-Out Benchmark Lab",
+    duty: "Evaluate model accuracy on 50 unseen units, measure Cohen's kappa (κ), and audit false positives.",
     target: "/evaluation",
     icon: BarChart3,
-    color: "purple",
-    badge: "Benchmark & Accuracy",
+    accent: "purple",
+    statusText: "κ = 0.9293 Benchmark",
   },
 ];
 
@@ -92,7 +92,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Authentication failed. Check credentials.");
+        setError(data.error || "Authentication failed. Please verify credentials.");
         setLoadingKey(null);
         return;
       }
@@ -109,69 +109,73 @@ export default function LoginPage() {
       router.push(destination);
       router.refresh();
     } catch {
-      setError("Network connection error. Please try again.");
+      setError("Network connection timeout. Please try again.");
       setLoadingKey(null);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-brand-500 selection:text-white relative overflow-hidden">
-      {/* Background Subtle Gradient Lighting */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-brand-600/15 via-indigo-600/5 to-transparent blur-3xl pointer-events-none" />
-
-      {/* Top Navigation Bar */}
-      <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-5 flex items-center justify-between border-b border-slate-800/80">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-base tracking-tight text-white">DockProof</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full">
-                RCV · Pod 01
-              </span>
+    <div className="min-h-screen bg-[#090A0F] text-slate-100 flex flex-col justify-between selection:bg-indigo-600 selection:text-white">
+      {/* Top Industrial Header Bar */}
+      <header className="w-full border-b border-slate-800/80 bg-[#0C0E17]/90 backdrop-blur-md sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30">
+              <Shield className="w-5 h-5" />
             </div>
-            <p className="text-[11px] text-slate-400">Autonomous Inbound Receiving Manager</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white font-sans">
+                  DockProof
+                </span>
+                <span className="text-[10px] font-mono uppercase font-semibold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                  RCV · Pod 01
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 hidden sm:block">
+                Autonomous Receiving Manager · CUBE Buildathon
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Bay Intake Pipeline Active</span>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Bay 4 Intake Pipeline Active</span>
+            </div>
+
+            <button
+              onClick={() => setSopOpen(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors shadow-sm"
+              title="Open Standard Operating Procedure & Specification"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Receiving SOP</span>
+            </button>
           </div>
-
-          <button
-            onClick={() => setSopOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 transition-colors shadow-sm"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-brand-400" />
-            <span>Receiving SOP</span>
-          </button>
         </div>
       </header>
 
-      {/* Main Body */}
-      <main className="relative z-10 w-full max-w-5xl mx-auto px-6 py-10 flex-1 flex flex-col justify-center space-y-8">
-        {/* Header Hero Title */}
-        <div className="text-center space-y-2.5 max-w-2xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+      {/* Main Content Area */}
+      <main className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-10 flex-1 flex flex-col justify-center space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
             Select Operational Station
           </h1>
-          <p className="text-sm text-slate-400 leading-relaxed">
-            Autonomous optical verification at the receiving bay. Single-pass multimodal inspection against Purchase Orders with pure deterministic commercial verdicts.
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            Autonomous optical verification at bay arrival. Single-pass multimodal inspection against Purchase Orders with pure deterministic commercial verdicts.
           </p>
         </div>
 
         {error && (
-          <div className="max-w-md mx-auto p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs text-center flex items-center justify-center gap-2 animate-fade-in">
+          <div className="max-w-md mx-auto p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs text-center flex items-center justify-center gap-2 animate-fade-in">
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* 4 Station Workspace Cards (Grid 2x2) */}
+        {/* 4 Station Workspace Consoles */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {STATIONS.map((st) => {
             const Icon = st.icon;
@@ -182,55 +186,47 @@ export default function LoginPage() {
                 key={st.role}
                 onClick={() => handleLogin(st.email, st.target)}
                 disabled={Boolean(loadingKey)}
-                className="group relative text-left p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-brand-500/60 transition-all duration-200 hover:shadow-xl hover:shadow-brand-500/5 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex flex-col justify-between"
+                className="group text-left p-5 rounded-xl bg-[#121520] border border-slate-800/90 hover:border-indigo-500/70 hover:bg-[#161a28] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex flex-col justify-between shadow-sm relative overflow-hidden"
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
+                <div className="space-y-3 w-full">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                          st.color === "emerald"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20"
-                            : st.color === "amber"
-                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:bg-amber-500/20"
-                            : st.color === "purple"
-                            ? "bg-purple-500/10 text-purple-400 border border-purple-500/20 group-hover:bg-purple-500/20"
-                            : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500/20"
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                          st.accent === "emerald"
+                            ? "bg-emerald-950/70 text-emerald-400 border border-emerald-800/60"
+                            : st.accent === "amber"
+                            ? "bg-amber-950/70 text-amber-400 border border-amber-800/60"
+                            : st.accent === "purple"
+                            ? "bg-purple-950/70 text-purple-400 border border-purple-800/60"
+                            : "bg-indigo-950/70 text-indigo-400 border border-indigo-800/60"
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-sm text-white group-hover:text-brand-300 transition-colors">
+                        <h2 className="font-bold text-sm text-white group-hover:text-indigo-300 transition-colors">
                           {st.title}
-                        </h3>
-                        <p className="text-[11px] text-slate-400 font-mono">{st.station}</p>
+                        </h2>
+                        <span className="text-[11px] font-mono text-slate-400 block">
+                          {st.station}
+                        </span>
                       </div>
                     </div>
 
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                        st.color === "emerald"
-                          ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
-                          : st.color === "amber"
-                          ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
-                          : st.color === "purple"
-                          ? "bg-purple-950/60 text-purple-300 border-purple-800/60"
-                          : "bg-indigo-950/60 text-indigo-300 border-indigo-800/60"
-                      }`}
-                    >
-                      {st.badge}
+                    <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                      {st.statusText}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed">{st.desc}</p>
+                  <p className="text-xs text-slate-400 leading-relaxed">{st.duty}</p>
                 </div>
 
-                <div className="pt-4 mt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-[11px] text-slate-500 font-mono">1-Click Launch</span>
-                  <div className="flex items-center gap-1 font-semibold text-brand-400 group-hover:text-brand-300 transition-colors">
+                <div className="pt-3.5 mt-3.5 border-t border-slate-800/80 flex items-center justify-between w-full text-xs">
+                  <span className="text-[11px] font-mono text-slate-500">1-Click Launch</span>
+                  <div className="flex items-center gap-1.5 font-semibold text-indigo-400 group-hover:text-indigo-300 transition-colors">
                     {isLoading ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-brand-400">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-indigo-400 font-mono">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" /> Authenticating…
                       </span>
                     ) : (
@@ -246,12 +242,12 @@ export default function LoginPage() {
           })}
         </div>
 
-        {/* Optional Custom Organization Login Accordion */}
-        <div className="max-w-md mx-auto w-full pt-2">
+        {/* Custom Organization Credentials Drawer */}
+        <div className="max-w-md mx-auto w-full pt-1">
           <button
             type="button"
             onClick={() => setShowCustomLogin(!showCustomLogin)}
-            className="w-full flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors py-1.5"
+            className="w-full flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors py-1.5 font-mono"
           >
             <Lock className="w-3.5 h-3.5 text-slate-500" />
             <span>Sign in with custom organization credentials</span>
@@ -266,7 +262,7 @@ export default function LoginPage() {
                 e.preventDefault();
                 handleLogin();
               }}
-              className="mt-3 p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-3 animate-slide-in"
+              className="mt-3 p-4 bg-[#121520] rounded-xl border border-slate-800 space-y-3 animate-fade-in"
             >
               <div>
                 <label className="block text-[11px] font-semibold text-slate-400 mb-1">
@@ -277,7 +273,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="operator@alpha.com"
-                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -291,7 +287,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-3 py-2 pr-9 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+                    className="w-full px-3 py-2 pr-9 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                   />
                   <button
                     type="button"
@@ -306,7 +302,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={Boolean(loadingKey) || !email || !password}
-                className="w-full py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5 shadow"
+                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5 shadow"
               >
                 {loadingKey === email ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -319,22 +315,24 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 w-full max-w-7xl mx-auto px-6 py-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Pure Deterministic Decision Engine · Sealed rcv.v1 Evidence Contract</span>
-        </div>
+      {/* Industrial Footer */}
+      <footer className="w-full border-t border-slate-800/80 bg-[#0C0E17]/60 py-4 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400 font-mono">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Deterministic Rules Engine · SHA-256 rcv.v1 Sealed Contract</span>
+          </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSopOpen(true)}
-            className="hover:text-slate-300 transition-colors"
-          >
-            Receiving Specification & 8 Gates
-          </button>
-          <span>·</span>
-          <span>CUBE Buildathon 2026</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSopOpen(true)}
+              className="hover:text-slate-200 transition-colors"
+            >
+              8 Arrival Gates SOP
+            </button>
+            <span>·</span>
+            <span>CUBE Buildathon 2026</span>
+          </div>
         </div>
       </footer>
 
