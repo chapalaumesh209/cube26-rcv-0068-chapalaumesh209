@@ -1,153 +1,89 @@
-# Cube Buildathon · 01 · Receiving Manager
+# DockProof · Receiving Manager
 
-**Commerce Context stream · Round 2 · Individual Build**
-**Candidate:** `chapalaumesh209` (Chapala Umesh) · **Pod:** `01 · Receiving Manager (RCV)`
+DockProof records the condition of inbound inventory at the point of receipt. It compares a purchase order and product catalogue with observations from receiving photographs, applies fixed commercial rules, and seals the outcome in an `rcv.v1` evidence record.
 
-> Five agents, one unit, one record that follows it.
-> A physical product arrives, gets prepped, gets shipped, comes back. At every step a person makes a fast judgment that nobody records. **DockProof makes that judgment and leaves proof.**
+This is the Round 2 implementation for CUBE Buildathon 2026, Track 01 / Pod 01. The fork is [chapalaumesh209/cube26-rcv-0068-chapalaumesh209](https://github.com/chapalaumesh209/cube26-rcv-0068-chapalaumesh209).
 
----
+## Problem understanding
 
-## The Problem Statement: Receiving Manager
+Spot checks at the dock can miss shortages, wrong variants, crushed cartons, water damage, and missing parts. When these are found later, the original receipt condition is hard to prove. The receiving decision therefore needs to be made while the freight is present and backed by a record that can be audited or handed to downstream teams. When a label or product surface cannot be seen, `UNCERTAIN` is the correct result.
 
-|                              |                                                                                     |
-| ---------------------------- | ----------------------------------------------------------------------------------- |
-| **Position in the chain**    | Step 1 of 5. Supplier delivery.                                                     |
-| **Customer**                 | Seller or 3PL taking supplier delivery                                              |
-| **What gets recorded**       | Condition on arrival                                                                |
-| **Who consumes your output** | Prep Manager (next in the chain) and Recovery Manager (supplier and inbound claims) |
+## Solution overview
 
-A pallet arrives from a manufacturer, often overseas. Someone opens the cartons and decides whether what arrived is what was ordered: right SKU, right count, undamaged, to the quality agreed. Today this is a spot check at best. Shortages and defects surface weeks later when units fail in prep or come back as returns, by which point the supplier conversation is unwinnable because nothing was recorded on arrival.
+DockProof has four cooperating parts:
 
-**What DockProof returns, from photographs at the point of receipt:**
+1. A receiving workspace connects arrivals to PO lines and catalogue specifications.
+2. One observation pass collects identity, quantity, carton count, pack ratio, variant, carton damage, unit damage, and component findings. In `mock` mode these are stable offline fixtures; in `live` mode they come from a configured vision model.
+3. A deterministic rules engine checks the observations. Any failed check makes the overall result `EXCEPTION`; otherwise any uncertain check makes it `UNCERTAIN`; only all-pass checks make it `PASS`.
+4. The app writes a versioned `rcv.v1` JSON evidence record with a SHA-256 content hash. Authorized reviewers can add a reasoned override and audit entry.
 
-* Identity of the goods against the purchase order line
-* Quantity received against quantity ordered, including carton count and units per carton
-* Damage visible on cartons and units: crushing, water, tears
-* Quality flags against the agreed spec: wrong colour, wrong variant, missing components, obvious defects
+The interface provides a live receiving ledger, shipment and manifest views, an inspection workspace, a review queue, an evidence vault, a product catalogue, evaluation metrics, and site settings. Access is role based and records are scoped to an organization.
 
-### The Chain We Are Part Of
+## Setup
 
-```text
- Supplier delivery      Inbound to Amazon     Outbound to buyer     Customer return        Money back
- ┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
- │ 01 Receiving │ ───▶ │ 02 Prep      │ ───▶ │ 03 Pack      │ ───▶ │ 04 Returns   │      │ 05 Recovery  │
- │ condition on │      │ compliance   │      │ contents at  │      │ condition &  │      │ reads all    │
- │ arrival      │      │ proof        │      │ seal         │      │ disposition  │      │ four → claim │
- └──────┬───────┘      └──────┬───────┘      └──────┬───────┘      └──────┬───────┘      └──────▲───────┘
-        └─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
-```
+Requirements: Node.js 20 or newer and npm. SQLite runs locally; no database service is needed for the demo.
 
----
-
-## DockProof Architecture & Core Rules
-
-1. **One Multimodal Call per Unit:** All 8 visual and document checks (identity, quantity, carton count, units per carton, variant, carton damage, unit damage, and components) are executed in **exactly one** structured multimodal inference call.
-2. **Pure Deterministic Verdict Ownership:** The VLM extracts observations and confidence scores. Commercial verdicts (`PASS`, `EXCEPTION`, `UNCERTAIN`) are strictly owned by a deterministic business rules engine. A model never makes final commercial verdicts directly.
-3. **No Masked Failures:** Any single failed check unconditionally forces an overall `EXCEPTION` commercial outcome.
-4. **First-Class Uncertainty:** When goods are occluded or barcode glare prevents confident recognition, the system returns `UNCERTAIN` rather than forcing a low-confidence PASS.
-5. **Fail-Open Operational Safety:** If model inference times out or network degrades, receipts are persisted as `pending_inspection` with `fail_open=true`, keeping warehouse floor operators moving.
-6. **Strict Multi-Tenant Isolation:** Complete isolation between tenant organizations (`org_demo_alpha` vs `org_demo_bravo`). Zero data or image leakage across tenants.
-7. **Immutable Evidence Contract (`rcv.v1`):** Auditable evidence contract with SHA-256 content hash, model latency, model version, and non-destructive human overrides.
-
----
-
-## The 8 Required Receiving Checks
-
-| # | Check Key | VLM Observation | Decision Engine Rule |
-|---|---|---|---|
-| 1 | `identity` | OCR label text, ASIN/SKU text, visual similarity | PASS if SKU/ASIN match catalogue; FAIL if mismatch confirmed; UNCERTAIN if unreadable |
-| 2 | `quantity` | Visible unit count, partial occlusion flag | PASS if count matches PO; FAIL if shortage/overage confirmed; UNCERTAIN if occluded |
-| 3 | `carton_count` | Visible carton count | PASS if carton delta = 0; FAIL if discrepancy exists |
-| 4 | `units_per_carton` | Pack structure count inside opened carton | PASS if matches pack spec; FAIL if pack count differs |
-| 5 | `variant` | Observed colour, size, model attributes | PASS if matches PO line spec; FAIL if colour/variant mismatch |
-| 6 | `carton_damage` | Crushing, puncture, water damage, tears | PASS if clean; FAIL on visible damage; UNCERTAIN if ambiguous |
-| 7 | `unit_damage` | Dents, cracks, liquid staining on physical unit | PASS if clean; FAIL on defect; UNCERTAIN if hidden surface |
-| 8 | `components` | Visible accessories against catalogue BOM | PASS if all present; FAIL if cavity confirmed empty; UNCERTAIN if occluded |
-
----
-
-## Multi-Model Vision Evaluation & Benchmarking
-
-DockProof supports runtime switching across top frontier vision models via Google Gemini API & OpenRouter:
-- **`gemini-2.5-flash`** / **`google/gemini-3.8-flash`**: Highest spatial reasoning score (97.8%) and fine-grained carton defect sensitivity (98.5%).
-- **`qwen/qwen-2.5-vl-72b-instruct`**: Top OCR token accuracy (98.2%) and sub-2s average latency (1,781 ms).
-- **`google/gemini-3.1-flash-image`**: Strong multi-image aggregation and label parsing.
-- **Deterministic Mock VLM**: Offline zero-latency test fixture provider for CI/CD and air-gapped evaluation.
-
-### Held-Out Evaluation Results (50 Cases)
-
-| Metric | Measured Value | Standard |
-|---|---|---|
-| **Overall Accuracy** | **100.0%** (50 / 50) | $\ge 90\%$ |
-| **Cohen's Kappa ($\kappa$)** | **0.9293** (Near-perfect agreement) | $\ge 0.70$ |
-| **False Positive Rate** | **0.0%** (0 false PASS on defective stock) | $0.0\%$ target |
-| **False Negative Rate** | **0.0%** | $\le 5.0\%$ |
-| **Abstention / Review Rate** | **14.0%** (Honest UNCERTAIN on occluded units) | Monitored |
-| **P95 Processing Latency** | **1,850 ms** (Production batching) | $\le 4,000\text{ ms}$ |
-
----
-
-## Submission Deliverables & Directory Structure
-
-All official 6 Faces of deliverables are structured under `submissions/chapalaumesh209/`:
-
-```text
-submissions/chapalaumesh209/
-├── README.md               ← Master index & submission status table
-├── 01-customer-letter.md   ← Inbound warehouse operations narrative
-├── 02-prfaq.md             ← Press Release & hard operational questions
-├── 03-one-pager.md         ← Key metrics, architecture diagram & kill condition
-├── CLAUDE.md               ← Hard engineering constraints & forbidden patterns
-├── build-brief.md          ← Technical architecture & system design
-├── build-log.md            ← Chronological build and commit log
-├── eval-report.md          ← 50-case benchmark metrics & failure mode analysis
-├── contract/
-│   └── rcv.v1.json         ← Interoperability contract schema with SHA-256 seal
-└── agent/
-    └── run_headless.ts     ← Headless CLI agent runner on fixtures
-```
-
----
-
-## Quick Start & Setup
-
-### 1. Installation
 ```bash
 git clone https://github.com/chapalaumesh209/cube26-rcv-0068-chapalaumesh209.git
 cd cube26-rcv-0068-chapalaumesh209
-npm install
-```
-
-### 2. Environment Configuration
-Copy `.env.example` to `.env.local` and add your API keys:
-```bash
+npm ci
 cp .env.example .env.local
-```
-```env
-# Optional live vision keys (fallback to deterministic mock if omitted)
-GEMINI_API_KEY=your_gemini_key_here
-OPENROUTER_API_KEY=your_openrouter_key_here
-NEXT_PUBLIC_DEFAULT_VLM=gemini-2.5-flash
-```
-
-### 3. Database Initialization & Seed
-```bash
-npm run db:seed
-```
-
-### 4. Run Test Suite & Evaluation
-```bash
-npm test          # Unit and tenant isolation integration tests (17 passing)
-npm run eval      # Run 50-case held-out benchmark
-```
-
-### 5. Start Development Server
-```bash
+npm run seed
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to access the minimal role-based interface:
-- **Operator** (`demo-operator`): Receiving station, camera capture, inspection queue.
-- **Reviewer** (`demo-reviewer`): Exception triage, human override adjudication.
-- **Admin** (`demo-admin`): Multi-tenant shipment manifests, catalogue management.
-- **Evaluator** (`demo-evaluator`): Benchmark dashboard, model comparison matrix, accuracy metrics.
+
+Open [http://localhost:3000](http://localhost:3000). The seeded role selector signs in with the four Alpha demo accounts below. They all use `demo123` when signing in through the custom credentials form.
+
+| Workspace | Demo email | Starting page |
+| --- | --- | --- |
+| Intake operator | `operator@alpha.com` | Receiving |
+| Lead reviewer | `lead@alpha.com` | Review queue |
+| Site administrator | `admin@alpha.com` | Shipments |
+| Quality evaluator | `evaluator@alpha.com` | Quality lab |
+
+`npm run seed` **deletes and recreates** all rows in the local demo database at `data/dockproof.db`. Run it only when you want to reset the local data. The application creates the SQLite schema on first access; seeding supplies the example users, orders, units, inspections, and evidence.
+
+The default `.env.example` uses `VLM_MODE=mock`, so the app runs without an API key. To use live image observation, set `VLM_MODE=live`, choose `VLM_PROVIDER=gemini` or `openrouter`, and provide the corresponding API key. Set a unique `AUTH_SECRET` for any nonlocal deployment. API keys and `.env.local` must never be committed.
+
+## Usage and demo path
+
+1. Sign in as the intake operator and open **Receiving**. Filter by `PASS`, `EXCEPTION`, or `UNCERTAIN`; search for a unit, SKU, PO, or supplier.
+2. Open an inspection. Compare the PO specification with the eight check results and use the “Why?” controls to inspect the observation and rule detail. A pending unit can be analyzed from this page.
+3. Sign in as the lead reviewer and open **Review queue**. Select an exception or uncertain unit, choose the binding outcome, and provide the mandatory audit reason.
+4. Open **Evidence vault** to inspect or download the sealed `rcv.v1` contract and its content hash.
+5. Sign in as the evaluator to inspect held-out scenario results in **Quality lab**. The displayed values come from `data/eval/report.json`.
+6. Sign in as the administrator to import a manifest, inspect catalogue BOM data, and review policy settings.
+
+For a repeatable demo, use the [demo runbook](docs/DEMO.md). The sample CSV is [receiving_sample.csv](receiving_sample.csv); import is available to operator, reviewer, and administrator roles.
+
+## Validation
+
+```bash
+npm test          # Rule, evidence schema, and tenant-isolation tests
+npm run eval      # Regenerate the held-out evaluation report
+npm run build     # Production compilation
+```
+
+The evaluation report is a held-out fixture benchmark, not evidence that every live model and camera setup will achieve the same result. See [docs/EVALUATION.md](docs/EVALUATION.md) and [docs/MODEL_CARD.md](docs/MODEL_CARD.md).
+
+## Assumptions and limitations
+
+- The default offline mode is a deterministic fixture demonstration; it does not analyze pixels. The UI and evidence detail identify these observations as fixture output.
+- Live mode requires an external provider key and usable receiving photographs. A live model timeout, invalid JSON, or incomplete observation leaves the inspection undecided and marked for follow-up; the app does not substitute a mock verdict.
+- SQLite and local file storage are suitable for this local demonstration. Multi-instance production hosting needs a shared transactional database and durable object storage.
+- The app stores image metadata and hashes, but this repository does not include a full camera-capture/upload workflow or real warehouse hardware integration.
+- Model observations are evidence inputs. Commercial acceptance remains with deterministic policy or a recorded human override.
+- The bundled report contains 50 fixture cases. Its performance numbers should not be generalized to unseen suppliers, lighting, packaging, or live model versions.
+
+## Submission status
+
+| Item | Status |
+| --- | --- |
+| Forked GitHub repository | [Fork URL](https://github.com/chapalaumesh209/cube26-rcv-0068-chapalaumesh209) |
+| Final implementation pushed | Verify the latest commit on the fork before submission |
+| README | This file |
+| Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Demo video | Recording and accessible link still required; [runbook](docs/DEMO.md) is ready |
+| Live deployment | Not configured; local demo is available at `http://localhost:3000` |
+
+Do not submit a local URL as a public deployment URL. Add a video or deployment link here only after verifying it is accessible to judges.

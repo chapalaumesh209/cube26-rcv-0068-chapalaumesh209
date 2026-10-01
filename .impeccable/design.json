@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T14:30:00+05:30",
+  "title": "Design System: DockProof Receiving Dossier",
+  "extensions": {
+    "colorMeta": {
+      "forest": { "role": "primary", "displayName": "Forest rail" },
+      "canvas": { "role": "neutral", "displayName": "Document canvas" },
+      "paper": { "role": "neutral", "displayName": "Paper sheet" },
+      "terracotta": { "role": "accent", "displayName": "Dossier marker" },
+      "pass": { "role": "success", "displayName": "Verified" },
+      "exception": { "role": "error", "displayName": "Exception" },
+      "uncertain": { "role": "warning", "displayName": "Uncertain" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Condensed heading", "purpose": "Page and section titles" },
+      "body": { "displayName": "Operational body", "purpose": "Instructions and record content" },
+      "label": { "displayName": "Technical label", "purpose": "Metadata, IDs and table headers" }
+    },
+    "shadows": [{ "name": "card-hover", "value": "0 5px 15px rgba(25,50,37,.07)", "purpose": "Subtle hover affordance only" }],
+    "motion": [{ "name": "standard", "value": "200ms ease", "purpose": "Navigation and control state changes; disabled with reduced motion" }],
+    "breakpoints": [{ "name": "mobile", "value": "768px" }, { "name": "compact", "value": "1100px" }]
+  },
+  "components": [
+    {
+      "name": "Primary button", "kind": "button", "refersTo": "button-primary", "description": "Commits the active receiving action.",
+      "html": "<button class=\"ds-btn-primary\">Verify arrival</button>",
+      "css": ".ds-btn-primary{background:#1d3a32;color:#fffefa;border:1px solid #1d3a32;border-radius:4px;padding:10px 16px;font:600 13px 'IBM Plex Sans',Arial,sans-serif;cursor:pointer;transition:background .2s ease}.ds-btn-primary:hover{background:#26483d}.ds-btn-primary:focus-visible{outline:2px solid #bd8655;outline-offset:2px}"
+    },
+    {
+      "name": "Document card", "kind": "card", "refersTo": "card", "description": "Groups one coherent purchase-order or evidence section.",
+      "html": "<section class=\"ds-card\"><small>RCV · POD 01 / EVIDENCE</small><h2>Arrival record</h2><p>Expected and observed facts remain side by side.</p></section>",
+      "css": ".ds-card{background:#fffefa;color:#1c2e27;border:1px solid #d9dcd0;border-top:3px solid #bd8655;border-radius:8px;padding:24px;font:14px 'IBM Plex Sans',Arial,sans-serif}.ds-card small{font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.08em;color:#94502b}.ds-card h2{font:700 28px 'Barlow Condensed',Arial,sans-serif;margin:9px 0}.ds-card p{margin:0;color:#65736c;line-height:1.5}"
+    },
+    {
+      "name": "Verdict chip", "kind": "chip", "description": "Explicit semantic receiving result.",
+      "html": "<span class=\"ds-verdict\">✓ PASS</span>",
+      "css": ".ds-verdict{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid #b8d5bf;border-radius:999px;background:#e5f0e8;color:#146443;font:700 11px 'IBM Plex Sans',Arial,sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The inspection dossier",
+    "overview": "Evidence-first warehouse operations UI: dark forest shell, warm document surfaces, restrained terracotta structure, and explicit semantic verdicts.",
+    "keyCharacteristics": ["Operational clarity", "Evidence provenance", "Compact readable density", "Honest uncertainty"],
+    "rules": [{ "name": "Evidence before verdict", "body": "Keep observations and PO expectations visible next to the decision.", "section": "components" }],
+    "dos": ["Use semantic labels with every verdict", "Use mono text for identifiers and measurements"],
+    "donts": ["Do not imply mock observations came from photos", "Do not use ornamental gradients or nested card stacks"]
+  }
+}

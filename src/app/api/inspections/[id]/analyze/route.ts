@@ -20,6 +20,7 @@ import {
   computeIdentityVerdict,
   computeQuantityVerdict,
   computeCartonVerdict,
+  computeUnitsPerCartonVerdict,
   computeVariantVerdict,
   computeDamageVerdict,
   computeComponentVerdict,
@@ -43,6 +44,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
   try {
     const session = await getSessionFromRequest();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'operator' && session.role !== 'reviewer' && session.role !== 'admin') {
+      return NextResponse.json({ error: 'This role cannot run receiving inspections' }, { status: 403 });
+    }
 
     const inspectionId = params.id;
 
@@ -81,6 +85,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
 
     const expectedState = {
+      unitCode: unit?.unitCode || 'UNIT-UNKNOWN',
       sku: unit?.sku || product?.sku || 'SKU-UNKNOWN',
       quantity: poLine?.qtyOrdered || 24,
       cartons: poLine?.cartonsOrdered || 2,
@@ -110,13 +115,16 @@ export async function POST(request: Request, { params }: { params: { id: string 
         })),
         expectedState
       );
+      if (!observation.identity || !observation.quantity || !observation.cartons || !observation.units_per_carton || !observation.variant || !observation.components || !(observation.carton_damage || observation.damage)) {
+        throw new Error('Observation was incomplete');
+      }
     } catch {
       failOpen = true;
     }
 
     if (failOpen) {
       await db.update(inspections)
-        .set({ status: 'failed', failOpen: true })
+        .set({ status: 'failed', failOpen: true, overallVerdict: null })
         .where(eq(inspections.id, inspectionId));
         
       return NextResponse.json({ success: true, message: 'Inspection marked as failed open' });
@@ -127,14 +135,12 @@ export async function POST(request: Request, { params }: { params: { id: string 
       computeIdentityVerdict(observation.identity, expectedState.sku),
       computeQuantityVerdict(expectedState.quantity, observation.quantity.observed_quantity, observation.quantity.occluded),
       computeCartonVerdict(expectedState.cartons, observation.cartons.observed_cartons),
-      {
-        checkKey: 'units_per_carton',
-        verdict: observation.units_per_carton.verdict,
-        confidence: observation.units_per_carton.confidence,
-        detail: { expected: expectedState.unitsPerCarton, observed: observation.units_per_carton.observed_units_per_carton }
-      },
+      computeUnitsPerCartonVerdict(expectedState.unitsPerCarton, observation.units_per_carton.observed_units_per_carton ?? undefined),
       computeVariantVerdict(observation.variant, expectedState.colour, expectedState.variant),
-      computeDamageVerdict(observation.damage),
+      computeDamageVerdict(observation.carton_damage || observation.damage!, 'carton_damage'),
+      observation.unit_damage
+        ? computeDamageVerdict(observation.unit_damage, 'unit_damage')
+        : { checkKey: 'unit_damage', verdict: 'uncertain', confidence: 0, detail: { reason: 'Unit surface was not separately observed' } },
       computeComponentVerdict(observation.components, expectedState.components),
     ];
 
@@ -166,6 +172,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         overallVerdict: overallVerdict as any,
         completedAt: now,
         modelVersion: 'dockproof-vlm-v1',
+        failOpen: false,
       })
       .where(eq(inspections.id, inspectionId));
 

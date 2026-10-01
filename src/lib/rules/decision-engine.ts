@@ -40,8 +40,16 @@ export function computeCartonVerdict(expected: number, observed: number | undefi
   return { checkKey: 'cartons', verdict: 'fail', confidence: 0.9, detail: { expected, observed } };
 }
 
+export function computeUnitsPerCartonVerdict(expected: number, observed: number | undefined): CheckResult {
+  if (observed === undefined) return { checkKey: 'units_per_carton', verdict: 'uncertain', confidence: 0.5, detail: { expected, observed } };
+  return { checkKey: 'units_per_carton', verdict: expected === observed ? 'pass' : 'fail', confidence: 0.9, detail: { expected, observed } };
+}
+
 export function computeIdentityVerdict(observation: IdentityObservationType, expectedSku: string): CheckResult {
-  if (observation.verdict === 'pass' && observation.confidence > 0.7) {
+  if (observation.observed_sku && observation.observed_sku.trim().toLowerCase() !== expectedSku.trim().toLowerCase()) {
+    return { checkKey: 'identity', verdict: 'fail', confidence: observation.confidence, detail: { expectedSku, observation } };
+  }
+  if (observation.verdict === 'pass' && observation.label_readable && observation.confidence >= 0.7) {
     return { checkKey: 'identity', verdict: 'pass', confidence: observation.confidence, detail: { expectedSku, observation } };
   }
   if (observation.verdict === 'fail') {
@@ -60,14 +68,14 @@ export function computeVariantVerdict(observation: VariantObservationType, expec
   return { checkKey: 'variant', verdict: 'pass', confidence: observation.confidence, detail: { expectedColour, expectedVariant, observation } };
 }
 
-export function computeDamageVerdict(observation: DamageObservationType): CheckResult {
-  if (observation.damage_type === 'none' || observation.verdict === 'pass') {
-    return { checkKey: 'damage', verdict: 'pass', confidence: observation.confidence, detail: { observation } };
+export function computeDamageVerdict(observation: DamageObservationType, checkKey = 'damage'): CheckResult {
+  if (observation.verdict === 'fail' || (observation.damage_type && observation.damage_type !== 'none')) {
+    return { checkKey, verdict: 'fail', confidence: observation.confidence, detail: { observation } };
   }
-  if (observation.verdict === 'fail') {
-    return { checkKey: 'damage', verdict: 'fail', confidence: observation.confidence, detail: { observation } };
+  if (observation.verdict === 'uncertain' || !observation.damage_type) {
+    return { checkKey, verdict: 'uncertain', confidence: observation.confidence, detail: { observation } };
   }
-  return { checkKey: 'damage', verdict: 'uncertain', confidence: observation.confidence, detail: { observation } };
+  return { checkKey, verdict: 'pass', confidence: observation.confidence, detail: { observation } };
 }
 
 export function computeComponentVerdict(observation: ComponentObservationType, expectedComponents: string[]): CheckResult {

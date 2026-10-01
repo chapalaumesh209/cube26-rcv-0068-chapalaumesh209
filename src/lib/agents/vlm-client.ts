@@ -210,9 +210,13 @@ export async function runVLMInspection(
   const vlmMode = process.env.VLM_MODE; // 'live' | 'mock'
 
   // If explicitly configured for mock or no keys provided
-  if (vlmMode === 'mock' || (!geminiKey && !openrouterKey && configuredProvider !== 'gemini' && configuredProvider !== 'openrouter')) {
+  if (vlmMode === 'mock' || (!vlmMode && !geminiKey && !openrouterKey)) {
     console.log('[VLM Client] Using deterministic mock engine (VLM_MODE=mock or no API keys present)');
     return runMockInspection(expectedState || {}, null);
+  }
+
+  if (!geminiKey && !openrouterKey) {
+    throw new Error('Live observation is selected but no VLM API key is configured');
   }
 
   try {
@@ -229,7 +233,7 @@ export async function runVLMInspection(
       console.log(`[VLM Client] Dispatching single multimodal call to Google Gemini (${model})...`);
       result = await callGemini(prompt, photos, geminiKey, model);
     } else {
-      return runMockInspection(expectedState || {}, null);
+      throw new Error('No configured live VLM provider is available');
     }
 
     // Extract JSON from response text
@@ -241,8 +245,7 @@ export async function runVLMInspection(
     try {
       parsed = JSON.parse(jsonStr);
     } catch {
-      console.warn('[VLM Client] Could not parse raw model output as JSON, falling back cleanly:', text.slice(0, 100));
-      return runMockInspection(expectedState || {}, null);
+      throw new Error('Live VLM returned invalid JSON');
     }
 
     parsed.metadata = {
@@ -254,12 +257,10 @@ export async function runVLMInspection(
     if (validated.success) {
       return validated.data;
     } else {
-      console.warn('[VLM Client] Model output had schema discrepancies; normalizing with mock defaults:', validated.error.issues);
-      return runMockInspection(expectedState || {}, null);
+      throw new Error(`Live VLM output did not match the observation schema: ${validated.error.issues[0]?.message || 'unknown error'}`);
     }
   } catch (error) {
-    console.error('[VLM Client] Live VLM call encountered an error. Applying fail-open safeguard:', error);
-    // Section 16 Fail-Open Rule: Return fallback inspection to prevent dock operator delays
-    return runMockInspection(expectedState || {}, null);
+    console.error('[VLM Client] Live observation failed; receipt remains undecided:', error);
+    throw error;
   }
 }

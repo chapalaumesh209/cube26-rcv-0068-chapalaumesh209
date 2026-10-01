@@ -18,7 +18,6 @@ import {
   Palette,
   ShieldAlert,
   Puzzle,
-  BookOpen,
   Filter,
   X,
   ExternalLink,
@@ -26,7 +25,6 @@ import {
   ChevronRight,
   TrendingUp,
 } from "lucide-react";
-import { ReceivingSopModal } from "@/components/receiving-sop-modal";
 import { LoadingIcon } from "@/components/ui/loading-icon";
 
 interface Inspection {
@@ -63,18 +61,12 @@ export default function ReceivingPage() {
   const [activeGate, setActiveGate] = useState<string | null>(null);
   const [sortField, setSortField] = useState("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const [sopOpen, setSopOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      if (statusFilter !== "all") params.set("verdict", statusFilter);
-      params.set("limit", "100");
-
-      const res = await fetch(`/api/inspections?${params}`);
+      const res = await fetch("/api/inspections");
       const data = await res.json();
       const list: Inspection[] = data.inspections || [];
       setInspections(list);
@@ -86,9 +78,7 @@ export default function ReceivingPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [search, statusFilter]);
+  useEffect(() => { fetchData(); }, []);
 
   // Aggregate Metrics
   const stats = useMemo(() => {
@@ -102,12 +92,17 @@ export default function ReceivingPage() {
 
   // Sorting
   const sorted = useMemo(() => {
-    return [...inspections].sort((a, b) => {
+    const query = search.trim().toLowerCase();
+    return inspections.filter((item) => {
+      const matchesVerdict = statusFilter === "all" || item.overallVerdict === statusFilter;
+      const matchesSearch = !query || [item.unitCode, item.sku, item.productTitle, item.poNumber, item.supplier].some((value) => value?.toLowerCase().includes(query));
+      return matchesVerdict && matchesSearch;
+    }).sort((a, b) => {
       const aVal = String((a as unknown as Record<string, unknown>)[sortField] || "");
       const bVal = String((b as unknown as Record<string, unknown>)[sortField] || "");
       return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
     });
-  }, [inspections, sortField, sortDir]);
+  }, [inspections, search, statusFilter, sortField, sortDir]);
 
   const toggleSort = (field: string) => {
     if (sortField === field) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -118,7 +113,7 @@ export default function ReceivingPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="receiving-page space-y-6 max-w-7xl mx-auto">
       {/* 1. Station Header Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -141,14 +136,6 @@ export default function ReceivingPage() {
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            onClick={() => setSopOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors shadow-sm"
-          >
-            <BookOpen className="w-4 h-4 text-brand-600" />
-            <span>Receiving SOP</span>
-          </button>
-
           <button
             onClick={fetchData}
             disabled={loading}
@@ -205,6 +192,8 @@ export default function ReceivingPage() {
         {/* Pass Card */}
         <div
           onClick={() => setStatusFilter(statusFilter === "pass" ? "all" : "pass")}
+          onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setStatusFilter(statusFilter === "pass" ? "all" : "pass"); } }}
+          role="button" tabIndex={0} aria-pressed={statusFilter === "pass"}
           className={`cursor-pointer bg-white p-5 rounded-2xl border transition-all duration-200 shadow-sm ${
             statusFilter === "pass"
               ? "border-emerald-500 ring-2 ring-emerald-100 bg-emerald-50/20"
@@ -231,6 +220,8 @@ export default function ReceivingPage() {
         {/* Exception Card */}
         <div
           onClick={() => setStatusFilter(statusFilter === "exception" ? "all" : "exception")}
+          onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setStatusFilter(statusFilter === "exception" ? "all" : "exception"); } }}
+          role="button" tabIndex={0} aria-pressed={statusFilter === "exception"}
           className={`cursor-pointer bg-white p-5 rounded-2xl border transition-all duration-200 shadow-sm ${
             statusFilter === "exception"
               ? "border-rose-500 ring-2 ring-rose-100 bg-rose-50/20"
@@ -257,6 +248,8 @@ export default function ReceivingPage() {
         {/* Uncertain Card */}
         <div
           onClick={() => setStatusFilter(statusFilter === "uncertain" ? "all" : "uncertain")}
+          onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setStatusFilter(statusFilter === "uncertain" ? "all" : "uncertain"); } }}
+          role="button" tabIndex={0} aria-pressed={statusFilter === "uncertain"}
           className={`cursor-pointer bg-white p-5 rounded-2xl border transition-all duration-200 shadow-sm ${
             statusFilter === "uncertain"
               ? "border-amber-500 ring-2 ring-amber-100 bg-amber-50/20"
@@ -283,6 +276,8 @@ export default function ReceivingPage() {
         {/* Pending Card */}
         <div
           onClick={() => setStatusFilter("all")}
+          onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setStatusFilter("all"); } }}
+          role="button" tabIndex={0} aria-pressed={statusFilter === "all"}
           className={`cursor-pointer bg-white p-5 rounded-2xl border transition-all duration-200 shadow-sm ${
             statusFilter === "all" ? "border-slate-300 bg-slate-50/30" : "border-slate-200 hover:border-slate-300"
           }`}
@@ -327,6 +322,8 @@ export default function ReceivingPage() {
               <div
                 key={gate.key}
                 onClick={() => setActiveGate(isSelected ? null : gate.key)}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActiveGate(isSelected ? null : gate.key); } }}
+                role="button" tabIndex={0} aria-pressed={isSelected}
                 className={`cursor-pointer p-2.5 rounded-xl border text-left transition-all ${
                   isSelected
                     ? "bg-brand-50 border-brand-400 ring-2 ring-brand-100"
@@ -347,7 +344,7 @@ export default function ReceivingPage() {
         {activeGate && (
           <div className="p-3 bg-brand-50/60 rounded-xl border border-brand-200 text-xs text-brand-900 flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-2">
-              <span className="font-bold">Active Gate Filter:</span>
+              <span className="font-bold">Gate guide:</span>
               <span>{GATES.find((g) => g.key === activeGate)?.desc}</span>
             </div>
             <button
@@ -597,8 +594,6 @@ export default function ReceivingPage() {
         )}
       </div>
 
-      {/* SOP Modal */}
-      <ReceivingSopModal open={sopOpen} onOpenChange={setSopOpen} />
     </div>
   );
 }

@@ -294,17 +294,6 @@ export default function InspectionDetailPage() {
             Evidence Contract
           </Link>
 
-          {/* Upload Photo Button (Section 5.3 Pre-flight Gate) */}
-          {!isEvaluator && (
-            <button
-              onClick={() => setUploadModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition-colors shadow-sm"
-            >
-              <Upload className="w-4 h-4" />
-              Upload Evidence
-            </button>
-          )}
-
           {/* Inspection Trigger Button */}
           {inspection.status === "pending" ? (
             <button
@@ -376,7 +365,7 @@ export default function InspectionDetailPage() {
       {/* 3-Column Operator Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Expected State (25% width) */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-5 space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-4">
             <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Purchase order</h2>
@@ -442,92 +431,14 @@ export default function InspectionDetailPage() {
             <p className="text-[11px] text-slate-500">
               {userRole === "admin" && "Full administrative permissions: can trigger inspections, approve overrides, and manage user policies."}
               {userRole === "reviewer" && "Lead Reviewer: authorized to adjudicate exceptions and record binding human overrides with audit reasoning."}
-              {userRole === "operator" && "Receiving Operator: intake shipments, upload dock photos, and trigger inspections. Overrides require Reviewer status."}
+              {userRole === "operator" && "Receiving Operator: intake shipments and trigger inspections. Overrides require Reviewer status."}
               {userRole === "evaluator" && "Evaluator: read-only access to operational inspections. Primary workspace is the Evaluation benchmark."}
             </p>
           </div>
         </div>
 
-        {/* Center Column: Receiving Evidence Gallery (45% width) */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Dock photographs</h2>
-                <p className="text-[11px] text-slate-400">Condition captured at the bay</p>
-              </div>
-              <span className="text-[11px] text-slate-400 font-mono">
-                {inspection.photos?.length || 0} Images
-              </span>
-            </div>
-
-            {/* Thumbnail selector */}
-            {inspection.photos && inspection.photos.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {inspection.photos.map((photo, idx) => (
-                  <button
-                    key={photo.id || idx}
-                    onClick={() => setActivePhoto(photo)}
-                    className={`relative w-16 h-12 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
-                      activePhoto?.id === photo.id ? "border-brand-600 ring-2 ring-brand-100" : "border-slate-200 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <img src={photo.url} alt={photo.role} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Main Interactive Zoomable Viewer */}
-            <div className="relative bg-slate-900 rounded-xl overflow-hidden min-h-[300px] max-h-[420px] flex items-center justify-center group">
-              {activePhoto ? (
-                <>
-                  <img
-                    src={activePhoto.url}
-                    alt={activePhoto.role}
-                    className={`max-h-[400px] w-auto object-contain transition-transform duration-200 ${
-                      isPhotoZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
-                    }`}
-                    onClick={() => setIsPhotoZoomed(!isPhotoZoomed)}
-                  />
-                  <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setIsPhotoZoomed(!isPhotoZoomed)}
-                      className="p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 backdrop-blur-sm text-xs flex items-center gap-1"
-                    >
-                      <ZoomIn className="w-3.5 h-3.5" />
-                      {isPhotoZoomed ? "Zoom Out" : "Zoom In"}
-                    </button>
-                  </div>
-                  <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-md text-[11px]">
-                    Role: <span className="font-semibold">{activePhoto.role}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center p-8 text-slate-400">
-                  <Package className="w-12 h-12 mx-auto mb-2 text-slate-600" />
-                  <p className="text-xs">No inspection images uploaded.</p>
-                </div>
-              )}
-            </div>
-
-            {/* Cryptographic SHA-256 Hash of Image */}
-            {activePhoto && (
-              <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-[11px] flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Image SHA-256:</span>
-                <span className="font-mono text-slate-700 flex items-center gap-1">
-                  {activePhoto.sha256.substring(0, 16)}...
-                  <button onClick={() => copyToClipboard(activePhoto.sha256)} className="hover:text-brand-600">
-                    <Copy className="w-3 h-3 text-slate-400" />
-                  </button>
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column: 8 Required Checks + Interactive "Why?" (30% width) */}
-        <div className="lg:col-span-4 space-y-4">
+        {/* Right Column: 8 Required Checks + Interactive "Why?" */}
+        <div className="lg:col-span-7 space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
             <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
               <div>
@@ -730,7 +641,7 @@ export default function InspectionDetailPage() {
       <Dialog.Root open={Boolean(whyCheck)} onOpenChange={() => setWhyCheck(null)}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 z-50 animate-slide-in">
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 z-50 animate-dialog-in">
             {whyCheck && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-3">
@@ -817,7 +728,7 @@ export default function InspectionDetailPage() {
       <Dialog.Root open={overrideOpen} onOpenChange={setOverrideOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 z-50 animate-slide-in">
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 z-50 animate-dialog-in">
             <div className="flex items-center justify-between border-b pb-3 mb-4">
               <div>
                 <Dialog.Title className="text-base font-bold text-slate-900">
@@ -893,95 +804,7 @@ export default function InspectionDetailPage() {
         </Dialog.Portal>
       </Dialog.Root>
 
-      {/* Pre-Flight Photo Upload Modal (Section 5.3) */}
-      <Dialog.Root open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 z-50 animate-slide-in">
-            <div className="flex items-center justify-between border-b pb-3 mb-4">
-              <div>
-                <Dialog.Title className="text-base font-bold text-slate-900">
-                  Add dock photograph
-                </Dialog.Title>
-                <Dialog.Description className="text-xs text-slate-500">
-                  JPEG or PNG, hashed on ingest, attached to this unit.
-                </Dialog.Description>
-              </div>
-              <Dialog.Close className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </Dialog.Close>
-            </div>
 
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Image Role</label>
-                <select
-                  value={uploadRole}
-                  onChange={(e) => setUploadRole(e.target.value)}
-                  className="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                >
-                  <option value="carton_front">Carton Front / Label</option>
-                  <option value="carton_damage">Carton Damage Region</option>
-                  <option value="unit_overview">Unit Overview</option>
-                  <option value="unit_damage">Unit Damage Region</option>
-                  <option value="open_box">Open Box / Component Tray</option>
-                </select>
-              </div>
-
-              {/* Upload Dropzone */}
-              <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-brand-500 bg-slate-50 transition-colors">
-                <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                <p className="font-semibold text-slate-700">Drop receiving photo or click to browse</p>
-                <p className="text-[10px] text-slate-400 mt-1">Accepts JPEG, PNG, WebP (Max 10MB)</p>
-              </div>
-
-              {/* Pre-flight Checks checklist */}
-              <div className="p-3 bg-slate-100 rounded-xl space-y-1.5 text-[11px]">
-                <div className="flex items-center justify-between text-slate-700">
-                  <span>MIME Check:</span>
-                  <span className="text-emerald-600 font-semibold flex items-center gap-1"><Check className="w-3 h-3" /> Valid Image</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-700">
-                  <span>File Size Budget:</span>
-                  <span className="text-emerald-600 font-semibold flex items-center gap-1"><Check className="w-3 h-3" /> &lt; 10MB</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-700">
-                  <span>Pre-flight Blur Gate:</span>
-                  <span className="text-emerald-600 font-semibold flex items-center gap-1"><Check className="w-3 h-3" /> Sharpness &gt; 100</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-700">
-                  <span>SHA-256 Digest:</span>
-                  <span className="font-mono text-slate-500">Auto-computed on upload</span>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Dialog.Close asChild>
-                  <button type="button" className="px-3 py-2 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-50">
-                    Cancel
-                  </button>
-                </Dialog.Close>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUploading(true);
-                    setTimeout(() => {
-                      setUploading(false);
-                      setUploadModalOpen(false);
-                      setOverrideMessage("Photo ingested and verified under pre-flight quality gate.");
-                      setTimeout(() => setOverrideMessage(""), 4000);
-                    }, 800);
-                  }}
-                  disabled={uploading}
-                  className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold"
-                >
-                  {uploading ? "Ingesting..." : "Ingest & Store"}
-                </button>
-              </div>
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
     </div>
   );
 }

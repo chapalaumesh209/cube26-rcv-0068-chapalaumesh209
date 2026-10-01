@@ -288,7 +288,7 @@ export default function ReviewQueuePage() {
       <Dialog.Root open={Boolean(selectedItem)} onOpenChange={() => setSelectedItem(null)}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 animate-fade-in" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 z-50 animate-slide-in border border-slate-200">
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 z-50 animate-dialog-in border border-slate-200">
             {selectedItem && (
               <form onSubmit={handleApplyOverride} className="space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">

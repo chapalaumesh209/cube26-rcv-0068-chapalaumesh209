@@ -129,7 +129,7 @@ export default function EvidenceDetailPage() {
             <span className="text-[11px] text-slate-400">Read-Only Sealed Contract</span>
           </div>
           <pre
-            className="p-6 text-xs font-mono overflow-x-auto text-slate-800 bg-[#FAFAFA] leading-relaxed selection:bg-indigo-100"
+            className="p-6 text-xs font-mono overflow-x-auto text-slate-800 bg-[#FAFAFA] leading-relaxed selection:bg-slate-200"
             dangerouslySetInnerHTML={{ __html: highlightJSON(jsonString) }}
           />
         </div>

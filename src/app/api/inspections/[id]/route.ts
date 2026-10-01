@@ -101,6 +101,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       identity: 'Identity Match',
       quantity: 'Quantity Verified',
       carton_count: 'Carton Count',
+      cartons: 'Carton Count',
       units_per_carton: 'Units Per Carton',
       variant: 'Variant Match',
       carton_damage: 'Carton Damage',
@@ -168,7 +169,15 @@ export async function GET(request: Request, { params }: { params: { id: string }
           type: c.checkKey,
           verdict: c.verdict,
           confidence: Math.round((c.confidence || 0.92) * 100),
-          detail: c.detailJson || `Check for ${c.checkKey} completed with status: ${c.verdict}.`,
+          detail: (() => {
+            try {
+              const detail = JSON.parse(c.detailJson || '{}');
+              if (detail.observation?.reason) return detail.observation.reason;
+              if (detail.reason) return detail.reason;
+              if (detail.expected !== undefined) return `Expected ${detail.expected}; observed ${detail.observed ?? 'not visible'}.`;
+            } catch { /* Existing records may contain plain text. */ }
+            return c.detailJson || `Check completed: ${c.verdict}.`;
+          })(),
         })),
       },
     });

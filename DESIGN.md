@@ -1,46 +1,88 @@
-# DockProof Design System (Impeccable)
-
-Designed in accordance with **Impeccable Design Principles** for high-reliability industrial and logistics software.
-
+---
+name: DockProof Receiving Dossier
+description: Evidence-first operations interface for receiving, inspection, and exception review.
+colors:
+  forest: "#1d3a32"
+  forest-raised: "#26483d"
+  canvas: "#f3f2ed"
+  paper: "#fffefa"
+  ink: "#1c2e27"
+  muted: "#65736c"
+  line: "#d9dcd0"
+  terracotta: "#bd8655"
+  pass: "#146443"
+  exception: "#9c3328"
+  uncertain: "#8b5b11"
+typography:
+  display:
+    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
+    fontSize: "clamp(34px, 3vw, 46px)"
+    fontWeight: 700
+    lineHeight: 0.95
+  body:
+    fontFamily: "IBM Plex Sans, Arial, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.5
+  label:
+    fontFamily: "IBM Plex Mono, monospace"
+    fontSize: "10px"
+    fontWeight: 600
+    letterSpacing: "0.08em"
+rounded:
+  control: "4px"
+  card: "8px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "16px"
+  lg: "24px"
+  xl: "32px"
+components:
+  button-primary:
+    backgroundColor: "{colors.forest}"
+    textColor: "{colors.paper}"
+    rounded: "{rounded.control}"
+    padding: "10px 16px"
+  card:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.card}"
+    padding: "24px"
 ---
 
-## 1. Aesthetic Identity & Purpose
+## Overview
 
-- **Application Domain:** Autonomous Warehouse Receiving Bay & Inbound Freight Verification (CUBE Track 01 · Pod 01).
-- **Core Aesthetic:** Industrial Utility, High Contrast, Precision Telemetry.
-- **Tone:** Technical, robust, dependable, uncluttered. No consumer SaaS fluff, no decorative purple-glow gradients, no nested card bloat.
+DockProof is an inspection dossier, not a generic analytics dashboard. The interface makes physical arrivals, purchase-order expectations, evidence, and commercial decisions easy to scan under time pressure. A dark forest navigation rail anchors the workspace; warm paper surfaces read as receiving records. Terracotta marks document structure without competing with verdict colors.
 
----
+## Colors
 
-## 2. Color Palette & Functional Semantics
+Forest is for navigation and primary actions. Canvas and paper form a quiet reading surface; thin sage-gray borders organize data. Green, rust red, and amber are reserved for PASS, EXCEPTION/FAIL, and UNCERTAIN. Status must also be written in words and supported by icons or labels, never by color alone. Avoid purple/indigo brand accents and gray text on saturated backgrounds.
 
-All colors follow strict functional roles with tested contrast ratios ($\ge 4.5:1$ against backgrounds):
+## Typography
 
-| Semantic Role | Token | Light Mode | Dark Mode (Consoles) | Purpose |
-|---|---|---|---|---|
-| **Primary Base** | `slate-950` / `zinc-950` | `#0f172a` | `#090a0f` | Background canvas |
-| **Surface Raised** | `slate-900` / `zinc-900` | `#ffffff` | `#12151f` | Cards & panels |
-| **Border Subdued** | `slate-800` / `slate-200` | `#e2e8f0` | `#1e2433` | 1px clean grid lines |
-| **Verified (PASS)** | `emerald-500` | `#059669` | `#10b981` | Clean condition established |
-| **Exception (FAIL)** | `rose-500` / `red-600` | `#dc2626` | `#f43f5e` | Packaging defect, shortage, or mismatch |
-| **Uncertain (REVIEW)** | `amber-500` / `amber-600` | `#d97706` | `#f59e0b` | Visual occlusion / line-of-sight ambiguity |
-| **System Brand** | `indigo-600` | `#4f46e5` | `#6366f1` | Brand accent & action focus |
+Barlow Condensed provides compact, confident page and section headings. IBM Plex Sans carries instructions and table content. IBM Plex Mono identifies SKUs, POs, hashes, measurements, eyebrows, and operational metadata. Use tabular figures for quantities and benchmark metrics.
 
----
+## Layout
 
-## 3. Typography & Spacing System
+The desktop shell uses a 252px navigation rail, 64px topbar, and a document canvas capped at 1680px. Page headers act as the first sheet of a dossier. Dense records use tables with clear headers and horizontal scrolling on narrow screens. At mobile widths the rail becomes a menu and content uses 16–22px gutters; cards stack before text becomes cramped.
 
-- **Primary Display & Headings:** Inter with tight optical kerning (`tracking-tight`, weights 700 / 800).
-- **Metadata & Kicker Labels:** Uppercase tracking (`text-[10px]` to `text-[11px]`, `tracking-wider`, weight 600).
-- **Data & Telemetry:** JetBrains Mono for SKU, ASIN, Unit IDs, PO Numbers, and SHA-256 Hashes.
-- **Tabular Figures:** `font-mono tabular-nums` for counts, percentages, and latencies.
+## Elevation & Depth
 
----
+Prefer borders, rules, and tonal separation to floating shadows. Only subtle hover lift is allowed on interactive cards. No glow, glass, blur, or ornamental gradient.
 
-## 4. Anti-Patterns Eliminated (Impeccable Rules)
+## Shapes
 
-- ❌ **No `ai-color-palette` / `dark-glow`**: No fuzzy purple-to-cyan gradient blobs or colored blur halos.
-- ❌ **No `hero-eyebrow-chip`**: Replaced with functional industrial breadcrumbs and bay status indicators.
-- ❌ **No `cards-in-cards` bloat**: Structural dividers and high-contrast tables replace nested card containers.
-- ❌ **No `gray-on-color`**: High-contrast text pairings ensuring crisp legibility under warehouse lighting.
-- ❌ **No `theater-slop-phrase`**: Operational vocabulary only (*"Verify Arrival"*, *"Examine Evidence"*, *"Adjudicate Discrepancy"*).
+Controls have 4px corners, sheets and cards about 8px. The restrained geometry should feel like physical operations paperwork, not a playful consumer product.
+
+## Components
+
+Primary buttons use forest with paper text; secondary buttons are outlined. Status chips carry semantic tone and explicit verdict text. Page covers use a 3px top rule. Table headers are monospaced uppercase. Inputs have visible labels and a warm focus outline. Loading, empty, error, and read-only states must explain the next action.
+
+## Do's and Don'ts
+
+- Do show expected beside observed and cite the evidence behind a decision.
+- Do preserve UNCERTAIN when photos or counts cannot establish a fact.
+- Do describe current behavior accurately, particularly mock observation mode and CSV import.
+- Don't make mock data appear to be genuine visual analysis.
+- Don't claim a shipment is verified from an incomplete evidence record.

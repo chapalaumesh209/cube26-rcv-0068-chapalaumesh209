@@ -95,6 +95,8 @@ export const InspectionObservation = z.object({
   cartons: CartonObservation.optional(),
   units_per_carton: UnitsPerCartonObservation.optional(),
   variant: VariantObservation.optional(),
+  carton_damage: DamageObservation.optional(),
+  unit_damage: DamageObservation.optional(),
   damage: DamageObservation.optional(),
   components: ComponentObservation.optional(),
   metadata: ModelMetadata,

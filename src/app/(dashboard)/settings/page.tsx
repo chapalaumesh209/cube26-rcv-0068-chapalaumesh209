@@ -83,9 +83,8 @@ export default function SettingsPage() {
   const CAPABILITY_MATRIX = [
     { capability: "View inbound shipments", operator: true, reviewer: true, admin: true, evaluator: true },
     { capability: "Import purchase order manifests", operator: true, reviewer: true, admin: true, evaluator: false },
-    { capability: "Capture dock photographs", operator: true, reviewer: true, admin: true, evaluator: false },
     { capability: "Run receiving inspection", operator: true, reviewer: true, admin: true, evaluator: false },
-    { capability: "Accept PASS receipts", operator: true, reviewer: true, admin: true, evaluator: false },
+    { capability: "View PASS receipts", operator: true, reviewer: true, admin: true, evaluator: true },
     { capability: "Override EXCEPTION / UNCERTAIN", operator: false, reviewer: true, admin: true, evaluator: false },
     { capability: "Open sealed evidence record", operator: true, reviewer: true, admin: true, evaluator: true },
     { capability: "Run held-out quality suite", operator: false, reviewer: true, admin: true, evaluator: true },

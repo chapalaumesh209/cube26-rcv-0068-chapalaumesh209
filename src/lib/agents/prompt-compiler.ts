@@ -17,8 +17,9 @@ INSTRUCTIONS:
 3. Cartons: Count the number of cartons received.
 4. Units per Carton: If cartons are open, count units per carton.
 5. Variant: Verify the colour and specific variant details match.
-6. Damage: Check for any signs of damage (crushed, water damage, torn, punctured).
-7. Components: Verify all expected components are present.
+6. Carton damage: Check outer packaging for crushing, water damage, tears, and punctures.
+7. Unit damage: Separately check visible product surfaces for cracks, dents, staining, or other defects.
+8. Components: Verify all expected components are present.
 
 UNCERTAIN HANDLING:
 If you cannot clearly see or determine a check, return "uncertain". Do not guess. If an item is occluded, quantity may be uncertain. If a label is unreadable, identity may be uncertain.
@@ -59,7 +60,14 @@ You MUST respond with a single, valid JSON object strictly conforming to this ex
     "observed_variant": "Variant string or null",
     "reason": "Detailed visual rationale"
   },
-  "damage": {
+  "carton_damage": {
+    "verdict": "pass" | "fail" | "uncertain",
+    "confidence": 0.0 to 1.0,
+    "damage_type": "none" | "crushed" | "water" | "torn" | "punctured" | "other",
+    "severity": "minor" | "moderate" | "severe",
+    "reason": "Detailed visual rationale"
+  },
+  "unit_damage": {
     "verdict": "pass" | "fail" | "uncertain",
     "confidence": 0.0 to 1.0,
     "damage_type": "none" | "crushed" | "water" | "torn" | "punctured" | "other",

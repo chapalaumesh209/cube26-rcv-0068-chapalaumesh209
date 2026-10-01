@@ -3,6 +3,7 @@ import {
   computeOverallVerdict,
   computeQuantityVerdict,
   computeCartonVerdict,
+  computeUnitsPerCartonVerdict,
   computeIdentityVerdict,
   computeVariantVerdict,
   computeDamageVerdict,
@@ -75,6 +76,16 @@ describe('Individual Check Rules', () => {
     });
   });
 
+  it('does not accept a readable SKU that differs from the PO', () => {
+    const result = computeIdentityVerdict({ verdict: 'pass', confidence: 0.99, observed_sku: 'SKU-WRONG', label_readable: true, reason: 'OCR result' }, 'SKU-ORDERED');
+    expect(result.verdict).toBe('fail');
+  });
+
+  it('checks units per carton from the observed count rather than the model verdict', () => {
+    expect(computeUnitsPerCartonVerdict(12, 10).verdict).toBe('fail');
+    expect(computeUnitsPerCartonVerdict(12, undefined).verdict).toBe('uncertain');
+  });
+
   describe('Damage Logic', () => {
     it('passes when no damage is detected', () => {
       const res = computeDamageVerdict({
@@ -95,6 +106,12 @@ describe('Individual Check Rules', () => {
         reason: 'Front right corner compressed and punctured'
       });
       expect(res.verdict).toBe('fail');
+    });
+
+    it('does not mask reported damage with a contradictory PASS flag', () => {
+      const res = computeDamageVerdict({ verdict: 'pass', confidence: 0.82, damage_type: 'water', reason: 'Visible water stain' }, 'carton_damage');
+      expect(res.verdict).toBe('fail');
+      expect(res.checkKey).toBe('carton_damage');
     });
   });
 
