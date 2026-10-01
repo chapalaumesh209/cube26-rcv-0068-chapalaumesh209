@@ -4,11 +4,26 @@ import * as schema from "./schema";
 import fs from "fs";
 import path from "path";
 
-const dbPath = path.join(process.cwd(), "data", "dockproof.db");
+const isVercel = process.env.VERCEL === "1";
+const deploymentId = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || "runtime";
+const dbPath = process.env.DOCKPROOF_DB_PATH || (isVercel
+  ? path.join("/tmp", `dockproof-${deploymentId}.db`)
+  : path.join(process.cwd(), "data", "dockproof.db"));
 const dbDir = path.dirname(dbPath);
 
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
+}
+
+// Vercel functions can only write to /tmp. Start every cold runtime from the
+// bundled demo snapshot so authentication and the evaluation workflow work
+// without an external database. Production installations should point
+// DOCKPROOF_DB_PATH at durable storage instead.
+if (isVercel && !fs.existsSync(dbPath)) {
+  const seedPath = path.join(process.cwd(), "data", "dockproof.seed.db");
+  if (fs.existsSync(seedPath)) {
+    fs.copyFileSync(seedPath, dbPath);
+  }
 }
 
 export const sqlite = new Database(dbPath);

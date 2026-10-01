@@ -70,7 +70,7 @@ The evaluation report is a held-out fixture benchmark, not evidence that every l
 
 - The default offline mode is a deterministic fixture demonstration; it does not analyze pixels. The UI and evidence detail identify these observations as fixture output.
 - Live mode requires an external provider key and usable receiving photographs. A live model timeout, invalid JSON, or incomplete observation leaves the inspection undecided and marked for follow-up; the app does not substitute a mock verdict.
-- SQLite and local file storage are suitable for this local demonstration. Multi-instance production hosting needs a shared transactional database and durable object storage.
+- SQLite and local file storage are suitable for this demonstration. The Vercel deployment boots each cold function from the bundled demo snapshot in `/tmp`, so hosted mutations are non-durable and may reset. A production multi-instance deployment needs a shared transactional database and durable object storage.
 - The app stores image metadata and hashes, but this repository does not include a full camera-capture/upload workflow or real warehouse hardware integration.
 - Model observations are evidence inputs. Commercial acceptance remains with deterministic policy or a recorded human override.
 - The bundled report contains 50 fixture cases. Its performance numbers should not be generalized to unseen suppliers, lighting, packaging, or live model versions.
@@ -84,6 +84,6 @@ The evaluation report is a held-out fixture benchmark, not evidence that every l
 | README | This file |
 | Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Demo video | Recording and accessible link still required; [runbook](docs/DEMO.md) is ready |
-| Live deployment | Not configured; local demo is available at `http://localhost:3000` |
+| Live deployment | [cube26-rcv-0068-chapalaumesh209.vercel.app](https://cube26-rcv-0068-chapalaumesh209.vercel.app) |
 
-Do not submit a local URL as a public deployment URL. Add a video or deployment link here only after verifying it is accessible to judges.
+The deployment URL above has been verified from a clean browser session. The hosted database behavior is intentionally demo-only as described under assumptions and limitations.

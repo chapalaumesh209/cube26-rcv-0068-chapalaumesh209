@@ -31,7 +31,7 @@ The model describes what it observes. It does not own the commercial verdict. Th
 | Prompt and schema | `src/lib/agents/prompt-compiler.ts`, `observation-schema.ts` | Supply PO expectations; validate structured model output |
 | Decision policy | `src/lib/rules/decision-engine.ts` | Compute check verdicts and overall result |
 | Evidence | `src/lib/evidence/` | Build `rcv.v1` payload and SHA-256 content hash |
-| Persistence | `src/db/index.ts`, `schema.ts` | Local SQLite schema and Drizzle queries |
+| Persistence | `src/db/index.ts`, `schema.ts` | Local SQLite schema and Drizzle queries; Vercel cold starts copy a bundled demo snapshot to writable `/tmp` |
 | Benchmark | `scripts/run-evaluation.ts`, `data/eval/` | Held-out fixture cases and report consumed by Quality lab |
 
 ## Data flow
@@ -59,7 +59,7 @@ If live inference times out, returns invalid JSON, lacks required observations, 
 | Decision | Reason and tradeoff |
 | --- | --- |
 | One Next.js application | Keeps UI, API, and data types together for a reproducible demo; the server must run where SQLite and local files are available. |
-| SQLite and Drizzle | Local setup needs no external database; production multi-instance hosting would need shared storage and stronger migration operations. |
+| SQLite and Drizzle | Local setup needs no external database. The hosted demo starts from a bundled read-only snapshot copied to ephemeral `/tmp`; production multi-instance hosting would need shared storage and stronger migration operations. |
 | Signed organization session plus query scoping | The organization is derived from the verified cookie and applied to top level queries. The integration test exercises tenant isolation. |
 | Deterministic verdict precedence | Prevents a model narrative or strong pass on one check from masking a confirmed defect elsewhere. |
 | Explicit uncertainty and fail-open receipt | A blocked view or model failure must not become a commercial PASS. The dock can preserve the arrival record while review remains open. |
@@ -68,6 +68,6 @@ If live inference times out, returns invalid JSON, lacks required observations, 
 
 ## Access and boundaries
 
-The seeded roles are operator, reviewer, administrator, and evaluator. Operators run intake. Reviewers and administrators may submit a binding override. Administrators manage manifests and settings. Evaluators inspect quality reports and cannot call the analyze endpoint. API route handlers verify the session; organization filters apply to the main inspection and shipment records. The local demo uses a single process and local SQLite file at `data/dockproof.db`.
+The seeded roles are operator, reviewer, administrator, and evaluator. Operators run intake. Reviewers and administrators may submit a binding override. Administrators manage manifests and settings. Evaluators inspect quality reports and cannot call the analyze endpoint. API route handlers verify the session; organization filters apply to the main inspection and shipment records. The local demo uses a single process and local SQLite file at `data/dockproof.db`. On Vercel, `data/dockproof.seed.db` is copied to a commit-scoped database in `/tmp` on cold start so the read-only application bundle remains untouched. This keeps the public demo functional but does not provide durable writes.
 
 The schema and evidence protocol are in [`src/db/schema.ts`](src/db/schema.ts) and [`submissions/chapalaumesh209/contract/rcv.v1.json`](submissions/chapalaumesh209/contract/rcv.v1.json). See [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md) for model assumptions and limitations.

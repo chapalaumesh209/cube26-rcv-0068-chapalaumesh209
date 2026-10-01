@@ -18,4 +18,4 @@ Before sharing the recording:
 2. Upload it to a judge-accessible location, set the required visibility, and open the link in a signed-out browser session.
 3. Add the verified URL to the README submission table and your final submission form.
 
-The local app is not a public deployment. If a live deployment is required, it must use durable storage and a unique `AUTH_SECRET`; do not publish the seeded demo credentials as a production login.
+The public demo is available at [cube26-rcv-0068-chapalaumesh209.vercel.app](https://cube26-rcv-0068-chapalaumesh209.vercel.app). Its seeded SQLite snapshot is copied to ephemeral `/tmp` on each Vercel cold start, so changes can reset. A production deployment must use durable storage and a unique `AUTH_SECRET`; the seeded credentials are demo-only.
