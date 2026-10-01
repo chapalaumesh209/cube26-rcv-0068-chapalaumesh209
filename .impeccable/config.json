@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/app/globals.css"
+        ],
+        "createdAt": "2026-10-01T09:06:24.423Z",
+        "reason": "Agent: the dossier cover uses an intentional 3px top rule and the same selector forces square corners with border-radius: 0 !important, so no rounded-card clash occurs"
+      }
+    ]
+  }
+}
