@@ -80,7 +80,7 @@ The evaluation report is a held-out fixture benchmark, not evidence that every l
 | Item | Status |
 | --- | --- |
 | Forked GitHub repository | [Fork URL](https://github.com/chapalaumesh209/cube26-rcv-0068-chapalaumesh209) |
-| Final implementation pushed | Verify the latest commit on the fork before submission |
+| Final implementation pushed | Yes — published to the fork's `main` branch |
 | README | This file |
 | Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Demo video | Recording and accessible link still required; [runbook](docs/DEMO.md) is ready |
