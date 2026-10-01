@@ -4,6 +4,21 @@ DockProof records the condition of inbound inventory at the point of receipt. It
 
 This is the Round 2 implementation for CUBE Buildathon 2026, Track 01 / Pod 01. The fork is [chapalaumesh209/cube26-rcv-0068-chapalaumesh209](https://github.com/chapalaumesh209/cube26-rcv-0068-chapalaumesh209).
 
+## Submission confirmation
+
+| Required README content | Confirmation |
+| --- | --- |
+| Problem understanding | Complete — receipt risk, evidence timing, and valid uncertainty are defined below |
+| Solution overview | Complete — workflow, AI observation, deterministic policy, and evidence sealing are covered |
+| Setup instructions | Complete — local requirements, commands, environment, seed behavior, and demo accounts are included |
+| Usage instructions | Complete — the operator, reviewer, evaluator, and administrator paths are documented |
+| Assumptions and limitations | Complete — mock/live boundaries, deployment persistence, image handling, and benchmark limits are explicit |
+
+- **Repository:** [github.com/chapalaumesh209/cube26-rcv-0068-chapalaumesh209](https://github.com/chapalaumesh209/cube26-rcv-0068-chapalaumesh209)
+- **Live application:** [cube26-rcv-0068-chapalaumesh209.vercel.app](https://cube26-rcv-0068-chapalaumesh209.vercel.app)
+- **Architecture:** [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Demo runbook:** [docs/DEMO.md](docs/DEMO.md)
+
 ## Problem understanding
 
 Spot checks at the dock can miss shortages, wrong variants, crushed cartons, water damage, and missing parts. When these are found later, the original receipt condition is hard to prove. The receiving decision therefore needs to be made while the freight is present and backed by a record that can be audited or handed to downstream teams. When a label or product surface cannot be seen, `UNCERTAIN` is the correct result.
@@ -18,6 +33,19 @@ DockProof has four cooperating parts:
 4. The app writes a versioned `rcv.v1` JSON evidence record with a SHA-256 content hash. Authorized reviewers can add a reasoned override and audit entry.
 
 The interface provides a live receiving ledger, shipment and manifest views, an inspection workspace, a review queue, an evidence vault, a product catalogue, evaluation metrics, and site settings. Access is role based and records are scoped to an organization.
+
+### Challenge coverage
+
+| Evaluation requirement | DockProof implementation | Evidence produced |
+| --- | --- | --- |
+| Correct product / SKU | OCR and visible identity observation compared with the PO and catalogue SKU/ASIN | Identity check, expected and observed identifiers, confidence, source photos |
+| Quantity discrepancy | Observed units compared with ordered quantity | Quantity verdict and expected-versus-observed counts |
+| Cartons and pack ratio | Carton count and units per carton evaluated independently | Separate carton-count and pack-spec checks |
+| Wrong colour or variant | Visible variant attributes compared with catalogue expectations | Variant verdict with expected and observed values |
+| Crushing, water, tears, or unit damage | Carton and product condition observations are evaluated as separate gates | Damage types, affected scope, confidence, and evidence references |
+| Missing components | Observed components compared with the product BOM | Component verdict and missing-item list |
+| Ambiguous evidence | Model is instructed to abstain; invalid or incomplete observations do not become PASS | `UNCERTAIN` or failed analysis requiring follow-up |
+| Usable audit record | Deterministic decision is serialized into the versioned evidence contract | `rcv.v1` JSON, SHA-256 content hash, override and audit records |
 
 ## Setup
 

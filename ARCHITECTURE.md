@@ -2,6 +2,24 @@
 
 DockProof is a Next.js 14 and TypeScript application for receiving decisions at the warehouse dock. React pages and route handlers share one codebase; SQLite with Drizzle ORM stores purchase orders, units, inspections, check results, and sealed evidence.
 
+## Architecture confirmation
+
+| Required architecture content | Confirmation |
+| --- | --- |
+| System architecture | Complete — application layers and decision pipeline are diagrammed below |
+| Components | Complete — UI, APIs, authentication, observation, policy, evidence, persistence, and benchmark responsibilities are mapped to code |
+| Data flow | Complete — the receipt-to-evidence sequence and failure path are documented |
+| Model / agent usage | Complete — mock and live providers, prompt inputs, structured validation, and abstention behavior are specified |
+| Important engineering decisions | Complete — major choices, rationale, and tradeoffs are recorded |
+
+### Architectural guarantees
+
+1. **No model-owned commercial decision.** The model reports observations; deterministic code assigns every check and overall verdict.
+2. **No uncertainty masking.** Any failed check produces `EXCEPTION`; otherwise any uncertain check produces `UNCERTAIN`; only an all-pass result produces `PASS`.
+3. **No cross-tenant top-level reads.** The organization comes from the signed session and scopes operational queries.
+4. **No silent live-to-mock fallback.** Provider, timeout, schema, or evidence failures remain failed or unresolved.
+5. **No destructive human override.** The original system verdict, replacement verdict, actor, reason, and audit event remain recorded.
+
 ## System architecture
 
 ```mermaid
@@ -19,6 +37,20 @@ flowchart LR
 ```
 
 The model describes what it observes. It does not own the commercial verdict. The rules engine calculates check results and applies one precedence rule: any fail → `EXCEPTION`; otherwise any uncertain → `UNCERTAIN`; otherwise `PASS`.
+
+### Deployment topology
+
+```mermaid
+flowchart TB
+  B[Browser / dock operator] --> V[Vercel Next.js application]
+  V --> F[Route handlers and server-rendered pages]
+  F --> T[/Commit-scoped SQLite in writable /tmp/]
+  S[(Bundled demo seed snapshot)] -->|copy on cold start| T
+  F -. live mode .-> G[Gemini or OpenRouter]
+  F --> E[rcv.v1 evidence response]
+```
+
+The public deployment is a reproducible evaluation environment. Each cold runtime copies the bundled seed snapshot to a commit-scoped database in `/tmp`. That makes authentication and read/write workflows functional for a demo, but mutations are not durable across cold starts or instances. A production deployment replaces this boundary with shared transactional storage and durable object storage while retaining the same route, rule, and evidence contracts.
 
 ## Components
 
